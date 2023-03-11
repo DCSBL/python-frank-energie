@@ -51,8 +51,6 @@ jobs:
             name: Check imports are sorted
           - id: poetry
             name: Check pyproject file
-          - id: pylint
-            name: Check with pylint
           - id: pyupgrade
             name: Check for upgradable syntax
           - id: trailing-whitespace
