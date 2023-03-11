@@ -1,25 +1,29 @@
 from __future__ import annotations
+
 import asyncio
+from datetime import datetime
 from typing import Any
-from datetime import datetime, timedelta
 
-from aiohttp.client import ClientError, ClientResponseError, ClientSession
+from aiohttp.client import ClientError, ClientSession
 
-from .models import Price, PriceData
+from .models import PriceData
+
 
 class FrankEnergie:
-    
+
     DATA_URL = "https://frank-graphql-prod.graphcdn.app/"
-     
+
     def __init__(self, clientsession: ClientSession = None):
         self._session = clientsession
-    
-    async def prices(self, start_date : datetime, end_date : datetime | None = None) -> tuple(PriceData, PriceData):
-        """Request to API"""
+
+    async def prices(
+        self, start_date: datetime, end_date: datetime | None = None
+    ) -> tuple(PriceData, PriceData):
+        """Request to API."""
         if self._session is None:
             self._session = ClientSession()
             self._close_session = True
-        
+
         query_data = {
             "query": """
                 query MarketPrices($startDate: Date!, $endDate: Date!) {
@@ -32,22 +36,29 @@ class FrankEnergie:
                 }
             """,
             "variables": {"startDate": str(start_date), "endDate": str(end_date)},
-            "operationName": "MarketPrices"
+            "operationName": "MarketPrices",
         }
-        
+
         try:
             resp = await self._session.post(self.DATA_URL, json=query_data)
 
             data = await resp.json()
-            return (PriceData(data['data']['marketPricesElectricity'] if data['data'] else {}), PriceData(data['data']['marketPricesGas'] if data['data'] else {}))
+            return (
+                PriceData(
+                    data["data"]["marketPricesElectricity"] if data["data"] else {}
+                ),
+                PriceData(data["data"]["marketPricesGas"] if data["data"] else {}),
+            )
 
         except (asyncio.TimeoutError, ClientError, KeyError) as error:
-            raise ValueError(f"Fetching energy data for period {start_date} - {end_date} failed: {error}") from error
-    
+            raise ValueError(
+                f"Fetching energy data for period {start_date} - {end_date} failed: {error}"
+            ) from error
+
     async def close(self) -> None:
         """Close client session."""
         if self._session and self._close_session:
-            await self._session.close()    
+            await self._session.close()
 
     async def __aenter__(self) -> FrankEnergie:
         """Async enter.
