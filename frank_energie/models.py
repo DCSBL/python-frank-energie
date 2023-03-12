@@ -15,7 +15,7 @@ class Price:
     sourcing_markup_rice: float
     energy_tax_price: float
 
-    def __init__(self, data: dict):
+    def __init__(self, data: dict) -> None:
         self.date_from = parser.parse(data["from"])
         self.date_till = parser.parse(data["till"])
 
@@ -24,21 +24,21 @@ class Price:
         self.sourcing_markup_price = data["sourcingMarkupPrice"]
         self.energy_tax_price = data["energyTaxPrice"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.date_from} -> {self.date_till}: {self.total}"
 
     @property
-    def for_now(self):
+    def for_now(self) -> bool:
         """Whether this price entry is for the current hour."""
         return self.date_from <= datetime.now(timezone.utc) < self.date_till
 
     @property
-    def for_future(self):
+    def for_future(self) -> bool:
         """Whether this price entry is for and hour after the current one."""
         return self.date_from.hour > datetime.now(timezone.utc).hour
 
     @property
-    def for_today(self):
+    def for_today(self) -> bool:
         """Whether this price entry is for the current day."""
         day_start = datetime.now(timezone.utc).replace(
             hour=0, minute=0, second=0, microsecond=0
@@ -47,11 +47,11 @@ class Price:
         return self.date_from >= day_start and self.date_till <= day_end
 
     @property
-    def market_price_with_tax(self):
+    def market_price_with_tax(self) -> float:
         return round(self.market_price + self.market_price_tax, 4)
 
     @property
-    def total(self):
+    def total(self) -> float:
         return round(
             self.market_price
             + self.market_price_tax
@@ -64,11 +64,17 @@ class Price:
 class PriceData:
     price_data: list[Price]
 
-    def __init__(self, price_data: list[dict]):
-        self.price_data = [Price(price) for price in price_data]
+    def __init__(self, price_data: list[dict] | None = None) -> None:
+        if price_data is not None:
+            self.price_data = [Price(price) for price in price_data]
+
+    def __add__(self, b: PriceData) -> PriceData:
+        pd = PriceData()
+        pd.price_data = self.price_data + b.price_data
+        return pd
 
     @property
-    def all(self):
+    def all(self) -> list[Price]:
         return self.price_data
 
     @property
@@ -92,11 +98,11 @@ class PriceData:
     def today_avg(self) -> float:
         return round(sum(hour.total for hour in self.today) / len(self.today), 5)
 
-    def get_future_prices(self):
+    def get_future_prices(self) -> list[Price]:
         """Prices for hours after the current one."""
         return [hour for hour in self.price_data if hour.for_future]
 
-    def asdict(self, attr):
+    def asdict(self, attr) -> dict:
         """Return a dict that can be used as entity attribute data."""
         return [
             {"from": e.date_from, "till": e.date_till, "price": getattr(e, attr)}

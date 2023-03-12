@@ -8,17 +8,18 @@ async def main():
     """Fetch and print data from Frank energie."""
     today = datetime.utcnow().date()
     tomorrow = today + timedelta(days=1)
-
-    print(today)
-    print(tomorrow)
+    day_after_tomorrow = today + timedelta(days=2)
 
     async with FrankEnergie() as fe:
-        (electra_prices, gas_prices) = await fe.prices(today, tomorrow)
+        (prices_today_electricity, prices_today_gas) = await fe.prices(today, tomorrow)
+        (prices_tomorrow_electricity, prices_tomorrow_gas) = await fe.prices(
+            tomorrow, day_after_tomorrow
+        )
 
-        for price in electra_prices.all:
+        for price in (prices_today_electricity + prices_tomorrow_electricity).all:
             print(f"{price.date_from} -> {price.date_till}: {price.total}")
 
-        for price in gas_prices.all:
+        for price in (prices_today_gas + prices_tomorrow_gas).all:
             print(f"{price.date_from} -> {price.date_till}: {price.total}")
 
 
