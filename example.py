@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta
 
-from frank_energie import FrankEnergie
+from python_frank_energie import FrankEnergie
 
 
 async def main():
