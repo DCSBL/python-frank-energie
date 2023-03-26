@@ -29,6 +29,7 @@ async def main():
 
     async with FrankEnergie(auth_token=authToken) as fe:
         print(await fe.monthSummary())
+        print(await fe.user())
 
 
 asyncio.run(main())

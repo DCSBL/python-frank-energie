@@ -20,13 +20,67 @@ class Authentication:
         if errors := data.get("errors"):
             raise AuthException(errors[0]["message"])
 
-        loginPayload = data.get("data").get("login")
-        if loginPayload is None:
+        payload = data.get("data").get("login")
+        if payload is None:
             raise AuthException("Unexpected response")
 
         return Authentication(
-            authToken=loginPayload.get("authToken"),
-            refreshToken=loginPayload.get("refreshToken"),
+            authToken=payload.get("authToken"),
+            refreshToken=payload.get("refreshToken"),
+        )
+
+
+@dataclass
+class User:
+    connectionsStatus: str
+    firstMeterReadingDate: str
+    lastMeterReadingDate: str
+    advancedPaymentAmount: float
+    hasCO2Compensation: bool
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> Authentication:
+
+        if errors := data.get("errors"):
+            raise AuthException(errors[0]["message"])
+
+        payload = data.get("data").get("me")
+        if payload is None:
+            raise AuthException("Unexpected response")
+
+        return User(
+            connectionsStatus=payload.get("connectionsStatus"),
+            firstMeterReadingDate=payload.get("firstMeterReadingDate"),
+            lastMeterReadingDate=payload.get("lastMeterReadingDate"),
+            advancedPaymentAmount=payload.get("advancedPaymentAmount"),
+            hasCO2Compensation=payload.get("hasCO2Compensation"),
+        )
+
+
+@dataclass
+class MonthSummary:
+    actualCostsUntilLastMeterReadingDate: float
+    expectedCostsUntilLastMeterReadingDate: float
+    lastMeterReadingDate: str
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> Authentication:
+
+        if errors := data.get("errors"):
+            raise AuthException(errors[0]["message"])
+
+        payload = data.get("data").get("monthSummary")
+        if payload is None:
+            raise AuthException("Unexpected response")
+
+        return MonthSummary(
+            actualCostsUntilLastMeterReadingDate=payload.get(
+                "actualCostsUntilLastMeterReadingDate"
+            ),
+            expectedCostsUntilLastMeterReadingDate=payload.get(
+                "expectedCostsUntilLastMeterReadingDate"
+            ),
+            lastMeterReadingDate=payload.get("lastMeterReadingDate"),
         )
 
 

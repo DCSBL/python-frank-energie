@@ -7,7 +7,7 @@ from typing import Any
 from aiohttp.client import ClientError, ClientSession
 
 from .exceptions import AuthRequiredException
-from .models import Authentication, PriceData
+from .models import Authentication, MonthSummary, PriceData, User
 
 
 class FrankEnergie:
@@ -62,7 +62,7 @@ class FrankEnergie:
         self._auth = Authentication.from_dict(await self._query(query))
         return self._auth.refreshToken
 
-    async def monthSummary(self):
+    async def monthSummary(self) -> MonthSummary:
 
         if self._auth is None:
             raise AuthRequiredException
@@ -83,7 +83,34 @@ class FrankEnergie:
             "variables": {},
         }
 
-        return await self._query(query)
+        return MonthSummary.from_dict(await self._query(query))
+
+    async def user(self) -> User:
+
+        if self._auth is None:
+            raise AuthRequiredException
+
+        query = {
+            "query": """
+                query Me {
+                    me {
+                        ...UserFields
+                    }
+                }
+                fragment UserFields on User {
+                    connectionsStatus
+                    firstMeterReadingDate
+                    lastMeterReadingDate
+                    advancedPaymentAmount
+                    treesCount
+                    hasCO2Compensation
+                }
+            """,
+            "operationName": "Me",
+            "variables": {},
+        }
+
+        return User.from_dict(await self._query(query))
 
     async def prices(
         self, start_date: datetime, end_date: datetime | None = None
