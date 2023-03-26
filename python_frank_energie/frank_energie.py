@@ -6,15 +6,84 @@ from typing import Any
 
 from aiohttp.client import ClientError, ClientSession
 
-from .models import PriceData
+from .exceptions import AuthRequiredException
+from .models import Authentication, PriceData
 
 
 class FrankEnergie:
 
     DATA_URL = "https://frank-graphql-prod.graphcdn.app/"
+    _auth: Authentication | None = None
 
-    def __init__(self, clientsession: ClientSession = None):
+    def __init__(
+        self,
+        clientsession: ClientSession = None,
+        auth_token: str | None = None,
+        refresh_token: str | None = None,
+    ):
         self._session = clientsession
+
+        if auth_token is not None or refresh_token is not None:
+            self._auth = Authentication(auth_token, refresh_token)
+
+    async def _query(self, query):
+        if self._session is None:
+            self._session = ClientSession()
+            self._close_session = True
+
+        try:
+            resp = await self._session.post(
+                self.DATA_URL,
+                json=query,
+                headers={"Authorization": f"Bearer {self._auth.authToken}"}
+                if self._auth is not None
+                else None,
+            )
+
+            return await resp.json()
+
+        except (asyncio.TimeoutError, ClientError, KeyError) as error:
+            raise ValueError(f"Request failed: {error}") from error
+
+    async def login(self, username: str, password: str) -> str:
+        query = {
+            "query": """
+                mutation Login($email: String!, $password: String!) {
+                    login(email: $email, password: $password) {
+                        authToken
+                        refreshToken
+                    }
+                }
+            """,
+            "operationName": "Login",
+            "variables": {"email": username, "password": password},
+        }
+
+        self._auth = Authentication.from_dict(await self._query(query))
+        return self._auth.refreshToken
+
+    async def monthSummary(self):
+
+        if self._auth is None:
+            raise AuthRequiredException
+
+        query = {
+            "query": """
+                query MonthSummary {
+                    monthSummary {
+                        _id
+                        actualCostsUntilLastMeterReadingDate
+                        expectedCostsUntilLastMeterReadingDate
+                        lastMeterReadingDate
+                        __typename
+                    }
+                }
+            """,
+            "operationName": "MonthSummary",
+            "variables": {},
+        }
+
+        return await self._query(query)
 
     async def prices(
         self, start_date: datetime, end_date: datetime | None = None
@@ -39,21 +108,13 @@ class FrankEnergie:
             "operationName": "MarketPrices",
         }
 
-        try:
-            resp = await self._session.post(self.DATA_URL, json=query_data)
-
-            data = await resp.json()
-            return (
-                PriceData(
-                    data["data"]["marketPricesElectricity"] if data["data"] else {}
-                ),
-                PriceData(data["data"]["marketPricesGas"] if data["data"] else {}),
-            )
-
-        except (asyncio.TimeoutError, ClientError, KeyError) as error:
-            raise ValueError(
-                f"Fetching energy data for period {start_date} - {end_date} failed: {error}"
-            ) from error
+        response = await self._query(query_data)
+        return (
+            PriceData(
+                response["data"]["marketPricesElectricity"] if response["data"] else {}
+            ),
+            PriceData(response["data"]["marketPricesGas"] if response["data"] else {}),
+        )
 
     async def close(self) -> None:
         """Close client session."""

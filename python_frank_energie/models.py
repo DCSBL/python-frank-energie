@@ -1,8 +1,33 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from dateutil import parser
+
+from .exceptions import AuthException
+
+
+@dataclass
+class Authentication:
+
+    authToken: str
+    refreshToken: str
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> Authentication:
+
+        if errors := data.get("errors"):
+            raise AuthException(errors[0]["message"])
+
+        loginPayload = data.get("data").get("login")
+        if loginPayload is None:
+            raise AuthException("Unexpected response")
+
+        return Authentication(
+            authToken=loginPayload.get("authToken"),
+            refreshToken=loginPayload.get("refreshToken"),
+        )
 
 
 class Price:
@@ -62,7 +87,7 @@ class Price:
 
 
 class PriceData:
-    price_data: list[Price]
+    price_data: list[Price] = []
 
     def __init__(self, price_data: list[dict] | None = None) -> None:
         if price_data is not None:
