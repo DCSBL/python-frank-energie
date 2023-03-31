@@ -60,7 +60,7 @@ class FrankEnergie:
         }
 
         self._auth = Authentication.from_dict(await self._query(query))
-        return self._auth.refreshToken
+        return self._auth
 
     async def monthSummary(self) -> MonthSummary:
 
