@@ -143,6 +143,14 @@ class FrankEnergie:
             PriceData(response["data"]["marketPricesGas"] if response["data"] else {}),
         )
 
+    @property
+    def is_authenticated(self) -> bool:
+        """Return if client is authenticated.
+
+        Does not actually check if the token is valid.
+        """
+        return self._auth is not None
+
     async def close(self) -> None:
         """Close client session."""
         if self._session and self._close_session:
