@@ -20,8 +20,8 @@ class Authentication:
         if errors := data.get("errors"):
             raise AuthException(errors[0]["message"])
 
-        payload = data.get("data").get("login")
-        if payload is None:
+        payload = data.get("data", {}).get("login")
+        if not payload:
             raise AuthException("Unexpected response")
 
         return Authentication(
@@ -44,8 +44,8 @@ class User:
         if errors := data.get("errors"):
             raise AuthException(errors[0]["message"])
 
-        payload = data.get("data").get("me")
-        if payload is None:
+        payload = data.get("data", {}).get("me")
+        if not payload:
             raise AuthException("Unexpected response")
 
         return User(
@@ -69,8 +69,8 @@ class MonthSummary:
         if errors := data.get("errors"):
             raise AuthException(errors[0]["message"])
 
-        payload = data.get("data").get("monthSummary")
-        if payload is None:
+        payload = data.get("data", {}).get("monthSummary")
+        if not payload:
             raise AuthException("Unexpected response")
 
         return MonthSummary(
