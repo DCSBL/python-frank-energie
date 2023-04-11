@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from python_frank_energie.exceptions import AuthException
-from python_frank_energie.models import Authentication, MonthSummary, User
+from python_frank_energie.exceptions import AuthException, RequestException
+from python_frank_energie.models import Authentication, MarketPrices, MonthSummary, User
 
 from . import load_fixtures
 
@@ -62,7 +62,7 @@ def test_user_with_expected_parameters():
 
 def test_user_with_missing_parameters():
     """Test User.from_dict with missing parameters."""
-    with pytest.raises(AuthException) as excinfo:
+    with pytest.raises(RequestException) as excinfo:
         User.from_dict({})
 
     assert "Unexpected response" in str(excinfo.value)
@@ -70,13 +70,13 @@ def test_user_with_missing_parameters():
 
 def test_user_with_unexpected_response():
     """Test User.from_dict with unexpected response."""
-    with pytest.raises(AuthException):
+    with pytest.raises(RequestException):
         User.from_dict({"data": {"me": None}})
 
 
 def test_user_error_message():
     """Test User.from_dict with error message."""
-    with pytest.raises(AuthException) as excinfo:
+    with pytest.raises(RequestException) as excinfo:
         User.from_dict({"errors": [{"message": "help me"}]})
 
     assert "help me" in str(excinfo.value)
@@ -100,7 +100,7 @@ def test_month_summary_with_expected_parameters():
 
 def test_month_summary_with_missing_parameters():
     """Test MonthSummary.from_dict with missing parameters."""
-    with pytest.raises(AuthException) as excinfo:
+    with pytest.raises(RequestException) as excinfo:
         MonthSummary.from_dict({})
 
     assert "Unexpected response" in str(excinfo.value)
@@ -108,13 +108,45 @@ def test_month_summary_with_missing_parameters():
 
 def test_month_summary_with_unexpected_response():
     """Test MonthSummary.from_dict with unexpected response."""
-    with pytest.raises(AuthException):
+    with pytest.raises(RequestException):
         MonthSummary.from_dict({"data": {"monthSummary": None}})
 
 
 def test_month_summary_error_message():
     """Test MonthSummary.from_dict with error message."""
-    with pytest.raises(AuthException) as excinfo:
+    with pytest.raises(RequestException) as excinfo:
         MonthSummary.from_dict({"errors": [{"message": "help me"}]})
+
+    assert "help me" in str(excinfo.value)
+
+
+#
+# Tests for MarketPrices Model.
+#
+
+
+def test_market_process_with_expected_parameters():
+    """Test MarketPrices.from_dict with expected parameters."""
+    market_prices = MarketPrices.from_dict(
+        json.loads(load_fixtures("market_prices.json"))
+    )
+
+    assert market_prices
+    assert len(market_prices.marketPricesElectricity.price_data) == 24
+    assert len(market_prices.marketPricesGas.price_data) == 24
+
+
+def test_market_process_with_missing_parameters():
+    """Test MarketPrices.from_dict with missing parameters."""
+    with pytest.raises(RequestException) as excinfo:
+        MarketPrices.from_dict({})
+
+    assert "Unexpected response" in str(excinfo.value)
+
+
+def test_market_process_error_message():
+    """Test MarketPrices.from_dict with error message."""
+    with pytest.raises(RequestException) as excinfo:
+        MarketPrices.from_dict({"errors": [{"message": "help me"}]})
 
     assert "help me" in str(excinfo.value)
