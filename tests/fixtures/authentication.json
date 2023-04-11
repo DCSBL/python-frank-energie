@@ -1,0 +1,10 @@
+{
+    "data":
+    {
+        "login":
+        {
+            "authToken": "hello",
+            "refreshToken": "world"
+        }
+    }
+}

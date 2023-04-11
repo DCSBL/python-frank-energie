@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from dateutil import parser
 
-from .exceptions import AuthException
+from .exceptions import AuthException, RequestException
 
 
 @dataclass
@@ -20,8 +20,8 @@ class Authentication:
         if errors := data.get("errors"):
             raise AuthException(errors[0]["message"])
 
-        payload = data.get("data").get("login")
-        if payload is None:
+        payload = data.get("data", {}).get("login")
+        if not payload:
             raise AuthException("Unexpected response")
 
         return Authentication(
@@ -42,11 +42,11 @@ class User:
     def from_dict(data: dict[str, str]) -> Authentication:
 
         if errors := data.get("errors"):
-            raise AuthException(errors[0]["message"])
+            raise RequestException(errors[0]["message"])
 
-        payload = data.get("data").get("me")
-        if payload is None:
-            raise AuthException("Unexpected response")
+        payload = data.get("data", {}).get("me")
+        if not payload:
+            raise RequestException("Unexpected response")
 
         return User(
             connectionsStatus=payload.get("connectionsStatus"),
@@ -67,11 +67,11 @@ class MonthSummary:
     def from_dict(data: dict[str, str]) -> Authentication:
 
         if errors := data.get("errors"):
-            raise AuthException(errors[0]["message"])
+            raise RequestException(errors[0]["message"])
 
-        payload = data.get("data").get("monthSummary")
-        if payload is None:
-            raise AuthException("Unexpected response")
+        payload = data.get("data", {}).get("monthSummary")
+        if not payload:
+            raise RequestException("Unexpected response")
 
         return MonthSummary(
             actualCostsUntilLastMeterReadingDate=payload.get(
@@ -187,3 +187,24 @@ class PriceData:
             {"from": e.date_from, "till": e.date_till, "price": getattr(e, attr)}
             for e in self.price_data
         ]
+
+
+@dataclass
+class MarketPrices:
+
+    marketPricesElectricity: PriceData
+    marketPricesGas: PriceData
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> MarketPrices:
+        if errors := data.get("errors"):
+            raise RequestException(errors[0]["message"])
+
+        payload = data.get("data", {})
+        if not payload:
+            raise RequestException("Unexpected response")
+
+        return MarketPrices(
+            marketPricesElectricity=PriceData(payload.get("marketPricesElectricity")),
+            marketPricesGas=PriceData(payload.get("marketPricesGas")),
+        )
