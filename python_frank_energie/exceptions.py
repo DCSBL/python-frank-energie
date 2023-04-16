@@ -8,3 +8,7 @@ class AuthRequiredException(FrankEnergieException):
 
 class AuthException(FrankEnergieException):
     """Authentication/login failed."""
+
+
+class RequestException(FrankEnergieException):
+    """Request failed."""
