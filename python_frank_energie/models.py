@@ -1,8 +1,96 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from dateutil import parser
+
+from .exceptions import AuthException, RequestException
+
+
+@dataclass
+class Authentication:
+    """Authentication data.
+
+    authToken: The token to use for authenticated requests.
+    refreshToken: The token to use to renew the authToken.
+    """
+
+    authToken: str
+    refreshToken: str
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> Authentication:
+        """Parse the response from the login or renewToken mutation."""
+
+        if errors := data.get("errors"):
+            raise AuthException(errors[0]["message"])
+
+        login_payload = data.get("data", {}).get("login")
+        renew_payload = data.get("data", {}).get("renewToken")
+        if not login_payload and not renew_payload:
+            raise AuthException("Unexpected response")
+
+        payload = login_payload or renew_payload
+
+        return Authentication(
+            authToken=payload.get("authToken"),
+            refreshToken=payload.get("refreshToken"),
+        )
+
+
+@dataclass
+class User:
+    connectionsStatus: str
+    firstMeterReadingDate: str
+    lastMeterReadingDate: str
+    advancedPaymentAmount: float
+    hasCO2Compensation: bool
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> Authentication:
+
+        if errors := data.get("errors"):
+            raise RequestException(errors[0]["message"])
+
+        payload = data.get("data", {}).get("me")
+        if not payload:
+            raise RequestException("Unexpected response")
+
+        return User(
+            connectionsStatus=payload.get("connectionsStatus"),
+            firstMeterReadingDate=payload.get("firstMeterReadingDate"),
+            lastMeterReadingDate=payload.get("lastMeterReadingDate"),
+            advancedPaymentAmount=payload.get("advancedPaymentAmount"),
+            hasCO2Compensation=payload.get("hasCO2Compensation"),
+        )
+
+
+@dataclass
+class MonthSummary:
+    actualCostsUntilLastMeterReadingDate: float
+    expectedCostsUntilLastMeterReadingDate: float
+    lastMeterReadingDate: str
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> Authentication:
+
+        if errors := data.get("errors"):
+            raise RequestException(errors[0]["message"])
+
+        payload = data.get("data", {}).get("monthSummary")
+        if not payload:
+            raise RequestException("Unexpected response")
+
+        return MonthSummary(
+            actualCostsUntilLastMeterReadingDate=payload.get(
+                "actualCostsUntilLastMeterReadingDate"
+            ),
+            expectedCostsUntilLastMeterReadingDate=payload.get(
+                "expectedCostsUntilLastMeterReadingDate"
+            ),
+            lastMeterReadingDate=payload.get("lastMeterReadingDate"),
+        )
 
 
 class Price:
@@ -62,7 +150,7 @@ class Price:
 
 
 class PriceData:
-    price_data: list[Price]
+    price_data: list[Price] = []
 
     def __init__(self, price_data: list[dict] | None = None) -> None:
         if price_data is not None:
@@ -108,3 +196,24 @@ class PriceData:
             {"from": e.date_from, "till": e.date_till, "price": getattr(e, attr)}
             for e in self.price_data
         ]
+
+
+@dataclass
+class MarketPrices:
+
+    marketPricesElectricity: PriceData
+    marketPricesGas: PriceData
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> MarketPrices:
+        if errors := data.get("errors"):
+            raise RequestException(errors[0]["message"])
+
+        payload = data.get("data", {})
+        if not payload:
+            raise RequestException("Unexpected response")
+
+        return MarketPrices(
+            marketPricesElectricity=PriceData(payload.get("marketPricesElectricity")),
+            marketPricesGas=PriceData(payload.get("marketPricesGas")),
+        )
