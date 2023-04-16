@@ -11,6 +11,7 @@ async def main():
     day_after_tomorrow = today + timedelta(days=2)
 
     async with FrankEnergie() as fe:
+
         (prices_today_electricity, prices_today_gas) = await fe.prices(today, tomorrow)
         (prices_tomorrow_electricity, prices_tomorrow_gas) = await fe.prices(
             tomorrow, day_after_tomorrow
@@ -21,6 +22,14 @@ async def main():
 
         for price in (prices_today_gas + prices_tomorrow_gas).all:
             print(f"{price.date_from} -> {price.date_till}: {price.total}")
+
+    async with FrankEnergie() as fe:
+        authToken = await fe.login("USERNAME", "PASSWORD")
+        print(await fe.monthSummary())
+
+    async with FrankEnergie(auth_token=authToken) as fe:
+        print(await fe.monthSummary())
+        print(await fe.user())
 
 
 asyncio.run(main())
