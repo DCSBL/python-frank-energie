@@ -1,0 +1,11 @@
+{
+    "data":
+    {
+        "monthSummary":
+        {
+            "actualCostsUntilLastMeterReadingDate": 12.34,
+            "expectedCostsUntilLastMeterReadingDate": 20.00,
+            "lastMeterReadingDate": "2023-01-01"
+        }
+    }
+}
