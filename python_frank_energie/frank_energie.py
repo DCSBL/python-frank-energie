@@ -62,6 +62,26 @@ class FrankEnergie:
         self._auth = Authentication.from_dict(await self._query(query))
         return self._auth
 
+    async def renewToken(self, authToken: str, refreshToken: str) -> str:
+        query = {
+            "query": """
+                mutation RenewToken($authToken: String!, $refreshToken: String!) {
+                    renewToken(authToken: $authToken, refreshToken: $refreshToken) {
+                        authToken
+                        refreshToken
+                    }
+                }
+            """,
+            "operationName": "RenewToken",
+            "variables": {"authToken": authToken, "refreshToken": refreshToken},
+        }
+
+        json = await self._query(query)
+        print(json)
+
+        self._auth = Authentication.from_dict(json)
+        return self._auth
+
     async def monthSummary(self) -> MonthSummary:
 
         if self._auth is None:

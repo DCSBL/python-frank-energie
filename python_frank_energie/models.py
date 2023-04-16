@@ -10,19 +10,28 @@ from .exceptions import AuthException, RequestException
 
 @dataclass
 class Authentication:
+    """Authentication data.
+
+    authToken: The token to use for authenticated requests.
+    refreshToken: The token to use to renew the authToken.
+    """
 
     authToken: str
     refreshToken: str
 
     @staticmethod
     def from_dict(data: dict[str, str]) -> Authentication:
+        """Parse the response from the login or renewToken mutation."""
 
         if errors := data.get("errors"):
             raise AuthException(errors[0]["message"])
 
-        payload = data.get("data", {}).get("login")
-        if not payload:
+        login_payload = data.get("data", {}).get("login")
+        renew_payload = data.get("data", {}).get("renewToken")
+        if not login_payload and not renew_payload:
             raise AuthException("Unexpected response")
+
+        payload = login_payload or renew_payload
 
         return Authentication(
             authToken=payload.get("authToken"),
