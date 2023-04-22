@@ -102,6 +102,8 @@ def test_month_summary_with_expected_parameters():
     assert month_summary
     assert month_summary.actualCostsUntilLastMeterReadingDate == 12.34
     assert month_summary.expectedCostsUntilLastMeterReadingDate == 20.0
+    assert month_summary.expectedCosts == 50.0
+    assert month_summary.differenceUntilLastMeterReadingDate == -7.66
     assert month_summary.lastMeterReadingDate == "2023-01-01"
 
 
