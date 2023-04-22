@@ -22,3 +22,5 @@ example.py
 
 # Private development settings
 private/**
+
+.coverage
