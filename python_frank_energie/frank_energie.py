@@ -13,9 +13,6 @@ from .models import Authentication, Invoices, MonthSummary, PriceData, User
 class FrankEnergie:
 
     DATA_URL = "https://frank-graphql-prod.graphcdn.app/"
-    _auth: Authentication | None = None
-    _close_session: bool = False
-    _session: ClientSession | None = None
 
     def __init__(
         self,
@@ -23,6 +20,8 @@ class FrankEnergie:
         auth_token: str | None = None,
         refresh_token: str | None = None,
     ):
+        self._close_session: bool = False
+        self._auth: Authentication | None = None
         self._session = clientsession
 
         if auth_token is not None or refresh_token is not None:
@@ -111,6 +110,9 @@ class FrankEnergie:
 
         Returns a Invoices object, containing the previous, current and upcoming invoice.
         """
+
+        if self._auth is None:
+            raise AuthRequiredException
 
         query = {
             "query": """
