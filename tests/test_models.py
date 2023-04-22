@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 
 import pytest
+from freezegun import freeze_time
 
 from python_frank_energie.exceptions import AuthException, RequestException
 from python_frank_energie.models import (
@@ -134,18 +135,18 @@ def test_month_summary_error_message():
 #
 
 
-def test_market_process_with_expected_parameters():
+def test_market_prices_with_expected_parameters():
     """Test MarketPrices.from_dict with expected parameters."""
     market_prices = MarketPrices.from_dict(
         json.loads(load_fixtures("market_prices.json"))
     )
 
     assert market_prices
-    assert len(market_prices.marketPricesElectricity.price_data) == 24
-    assert len(market_prices.marketPricesGas.price_data) == 24
+    assert len(market_prices.electricity.price_data) == 24
+    assert len(market_prices.gas.price_data) == 24
 
 
-def test_market_process_with_missing_parameters():
+def test_market_prices_with_missing_parameters():
     """Test MarketPrices.from_dict with missing parameters."""
     with pytest.raises(RequestException) as excinfo:
         MarketPrices.from_dict({})
@@ -153,12 +154,47 @@ def test_market_process_with_missing_parameters():
     assert "Unexpected response" in str(excinfo.value)
 
 
-def test_market_process_error_message():
+def test_market_prices_error_message():
     """Test MarketPrices.from_dict with error message."""
     with pytest.raises(RequestException) as excinfo:
         MarketPrices.from_dict({"errors": [{"message": "help me"}]})
 
     assert "help me" in str(excinfo.value)
+
+
+@freeze_time("2022-11-21 14:15:00")
+def test_market_prices_pricedata_current_hour():
+    """Test functionality of MarketPrices.price_data."""
+    market_prices = MarketPrices.from_dict(
+        json.loads(load_fixtures("market_prices.json"))
+    )
+
+    assert market_prices.electricity.current_hour.market_price == 1.14
+    assert market_prices.electricity.current_hour.market_price_tax == 2.14
+    assert market_prices.electricity.current_hour.sourcing_markup_price == 3.14
+    assert market_prices.electricity.current_hour.energy_tax_price == 4.14
+    assert market_prices.electricity.current_hour.market_price_with_tax == 3.28
+    assert market_prices.electricity.current_hour.total == 10.56
+    assert market_prices.electricity.current_hour.for_now is True
+    assert market_prices.electricity.current_hour.for_future is False
+    assert market_prices.electricity.current_hour.for_today is True
+
+    assert market_prices.electricity.today_min.total == 10.0
+    assert market_prices.electricity.today_max.total == 13.996
+    assert market_prices.electricity.today_avg == 11.2175
+
+
+@freeze_time("2022-11-21 14:15:00")
+def test_market_prices_pricedata_next_hour():
+    """Test functionality of MarketPrices.price_data."""
+    market_prices = MarketPrices.from_dict(
+        json.loads(load_fixtures("market_prices.json"))
+    )
+
+    future_prices = market_prices.electricity.get_future_prices()
+    assert len(future_prices) == 9
+    assert future_prices[0].market_price == 1.15
+    assert future_prices[1].market_price == 1.16
 
 
 #

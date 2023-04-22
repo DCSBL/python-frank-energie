@@ -166,7 +166,7 @@ class Price:
     date_till: datetime
     market_price: float
     market_price_tax: float
-    sourcing_markup_rice: float
+    sourcing_markup_price: float
     energy_tax_price: float
 
     def __init__(self, data: dict) -> None:
@@ -235,6 +235,10 @@ class PriceData:
         pd.price_data = self.price_data + b.price_data
         return pd
 
+    def __str__(self):
+        """Return a string representation of this price data."""
+        return str([str(price) for price in self.price_data])
+
     @property
     def all(self) -> list[Price]:
         """All prices."""
@@ -281,8 +285,8 @@ class PriceData:
 class MarketPrices:
     """Market prices for electricity and gas."""
 
-    marketPricesElectricity: PriceData
-    marketPricesGas: PriceData
+    electricity: PriceData
+    gas: PriceData
 
     @staticmethod
     def from_dict(data: dict[str, str]) -> MarketPrices:
@@ -295,6 +299,6 @@ class MarketPrices:
             raise RequestException("Unexpected response")
 
         return MarketPrices(
-            marketPricesElectricity=PriceData(payload.get("marketPricesElectricity")),
-            marketPricesGas=PriceData(payload.get("marketPricesGas")),
+            electricity=PriceData(payload.get("marketPricesElectricity")),
+            gas=PriceData(payload.get("marketPricesGas")),
         )
