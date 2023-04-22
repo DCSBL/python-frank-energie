@@ -40,6 +40,53 @@ class Authentication:
 
 
 @dataclass
+class Invoices:
+    """Invoices data."""
+
+    @dataclass
+    class Invoice:
+        """Invoice data."""
+
+        StartDate: datetime
+        PeriodDescription: str
+        TotalAmount: float
+
+        @staticmethod
+        def from_dict(data: dict[str, str]) -> Invoices.Invoice:
+            return Invoices.Invoice(
+                StartDate=parser.parse(data.get("StartDate")),
+                PeriodDescription=data.get("PeriodDescription"),
+                TotalAmount=data.get("TotalAmount"),
+            )
+
+    previousPeriodInvoice: Invoice
+    currentPeriodInvoice: Invoice
+    upcomingPeriodInvoice: Invoice
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> Invoices:
+        """Parse the response from the invoices query."""
+        if errors := data.get("errors"):
+            raise RequestException(errors[0]["message"])
+
+        payload = data.get("data", {}).get("invoices")
+        if not payload:
+            raise RequestException("Unexpected response")
+
+        return Invoices(
+            previousPeriodInvoice=Invoices.Invoice.from_dict(
+                payload.get("previousPeriodInvoice")
+            ),
+            currentPeriodInvoice=Invoices.Invoice.from_dict(
+                payload.get("currentPeriodInvoice")
+            ),
+            upcomingPeriodInvoice=Invoices.Invoice.from_dict(
+                payload.get("upcomingPeriodInvoice")
+            ),
+        )
+
+
+@dataclass
 class User:
     connectionsStatus: str
     firstMeterReadingDate: str

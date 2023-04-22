@@ -7,7 +7,7 @@ from typing import Any
 from aiohttp.client import ClientError, ClientSession
 
 from .exceptions import AuthRequiredException
-from .models import Authentication, MonthSummary, PriceData, User
+from .models import Authentication, Invoices, MonthSummary, PriceData, User
 
 
 class FrankEnergie:
@@ -106,6 +106,44 @@ class FrankEnergie:
         }
 
         return MonthSummary.from_dict(await self._query(query))
+
+    async def invoices(self) -> Invoices:
+        """Get invoices data.
+
+        Returns a Invoices object, containing the previous, current and upcoming invoice.
+        """
+
+        query = {
+            "query": """
+                query Invoices {
+                    invoices {
+                        previousPeriodInvoice {
+                            StartDate
+                            PeriodDescription
+                            TotalAmount
+                        }
+                        currentPeriodInvoice {
+                            StartDate
+                            PeriodDescription
+                            TotalAmount
+                        }
+                        upcomingPeriodInvoice {
+                            StartDate
+                            PeriodDescription
+                            TotalAmount
+                        }
+                    }
+                }
+            """,
+            "operationName": "Invoices",
+            "variables": {},
+        }
+
+        data = await self._query(query)
+        print(data)
+        return Invoices.from_dict(data)
+
+        # return Invoices.from_dict(await self._query(query))
 
     async def user(self) -> User:
 
