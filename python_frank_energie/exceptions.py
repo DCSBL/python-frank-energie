@@ -1,3 +1,6 @@
+"""Exceptions for the Frank Energie API."""
+
+
 class FrankEnergieException(Exception):
     """Base exception."""
 

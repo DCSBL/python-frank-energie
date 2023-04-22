@@ -1,3 +1,5 @@
+"""FrankEnergie API implementation."""
+
 from __future__ import annotations
 
 import asyncio
@@ -11,6 +13,7 @@ from .models import Authentication, Invoices, MonthSummary, PriceData, User
 
 
 class FrankEnergie:
+    """FrankEnergie API."""
 
     DATA_URL = "https://frank-graphql-prod.graphcdn.app/"
 
@@ -20,6 +23,7 @@ class FrankEnergie:
         auth_token: str | None = None,
         refresh_token: str | None = None,
     ):
+        """Initialize the FrankEnergie client."""
         self._close_session: bool = False
         self._auth: Authentication | None = None
         self._session = clientsession
@@ -47,6 +51,7 @@ class FrankEnergie:
             raise ValueError(f"Request failed: {error}") from error
 
     async def login(self, username: str, password: str) -> str:
+        """Login and get the authentication token."""
         query = {
             "query": """
                 mutation Login($email: String!, $password: String!) {
@@ -64,6 +69,7 @@ class FrankEnergie:
         return self._auth
 
     async def renewToken(self, authToken: str, refreshToken: str) -> str:
+        """Renew the authentication token."""
         query = {
             "query": """
                 mutation RenewToken($authToken: String!, $refreshToken: String!) {
@@ -84,7 +90,7 @@ class FrankEnergie:
         return self._auth
 
     async def monthSummary(self) -> MonthSummary:
-
+        """Get month summary data."""
         if self._auth is None:
             raise AuthRequiredException
 
@@ -110,7 +116,6 @@ class FrankEnergie:
 
         Returns a Invoices object, containing the previous, current and upcoming invoice.
         """
-
         if self._auth is None:
             raise AuthRequiredException
 
@@ -147,7 +152,7 @@ class FrankEnergie:
         # return Invoices.from_dict(await self._query(query))
 
     async def user(self) -> User:
-
+        """Get user data."""
         if self._auth is None:
             raise AuthRequiredException
 
