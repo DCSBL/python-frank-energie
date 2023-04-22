@@ -14,6 +14,8 @@ class FrankEnergie:
 
     DATA_URL = "https://frank-graphql-prod.graphcdn.app/"
     _auth: Authentication | None = None
+    _close_session: bool = False
+    _session: ClientSession | None = None
 
     def __init__(
         self,
