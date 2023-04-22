@@ -1,3 +1,5 @@
+"""Example of using python-frank-energie."""
+
 import asyncio
 from datetime import datetime, timedelta
 

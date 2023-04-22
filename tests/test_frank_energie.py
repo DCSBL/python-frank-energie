@@ -16,7 +16,6 @@ SIMPLE_DATA_URL = "frank-graphql-prod.graphcdn.app"
 @pytest.mark.asyncio
 async def test_init_without_authentication():
     """Test init without authentication."""
-
     api = FrankEnergie()
     assert api.is_authenticated is False
 
@@ -24,7 +23,6 @@ async def test_init_without_authentication():
 @pytest.mark.asyncio
 async def test_init_with_authentication():
     """Test init with authentication."""
-
     api = FrankEnergie(auth_token="a", refresh_token="b")  # noqa: S106
     assert api.is_authenticated is True
 
@@ -178,7 +176,6 @@ async def test_renew_token_invalid_response(aresponses):
 @pytest.mark.asyncio
 async def test_month_summary(aresponses):
     """Test request with authentication."""
-
     aresponses.add(
         SIMPLE_DATA_URL,
         "/",
@@ -208,7 +205,6 @@ async def test_month_summary_without_authentication(aresponses):
 
     'month_summary' request requires authentication.
     """
-
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
         with pytest.raises(AuthRequiredException):
@@ -224,7 +220,6 @@ async def test_month_summary_without_authentication(aresponses):
 @pytest.mark.asyncio
 async def test_invoices(aresponses):
     """Test request with authentication."""
-
     aresponses.add(
         SIMPLE_DATA_URL,
         "/",
@@ -261,7 +256,6 @@ async def test_invoices_without_authentication(aresponses):
 
     'invoices' request requires authentication.
     """
-
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
         with pytest.raises(AuthRequiredException):
@@ -277,7 +271,6 @@ async def test_invoices_without_authentication(aresponses):
 @pytest.mark.asyncio
 async def test_user(aresponses):
     """Test request with authentication."""
-
     aresponses.add(
         SIMPLE_DATA_URL,
         "/",
@@ -308,7 +301,6 @@ async def test_user_without_authentication(aresponses):
 
     'user' request requires authentication.
     """
-
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
         with pytest.raises(AuthRequiredException):
@@ -327,7 +319,6 @@ async def test_prices(aresponses):
 
     'prices' request does not require authentication.
     """
-
     aresponses.add(
         SIMPLE_DATA_URL,
         "/",
