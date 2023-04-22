@@ -332,13 +332,11 @@ async def test_prices(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
-        (electricity, gas) = await api.prices(
-            datetime.utcnow().date(), datetime.utcnow().date()
-        )
+        prices = await api.prices(datetime.utcnow().date(), datetime.utcnow().date())
         await api.close()
 
-    assert electricity is not None
-    assert len(electricity.price_data) == 24
+    assert prices.electricity is not None
+    assert len(prices.electricity.price_data) == 24
 
-    assert gas is not None
-    assert len(gas.price_data) == 24
+    assert prices.gas is not None
+    assert len(prices.gas.price_data) == 24

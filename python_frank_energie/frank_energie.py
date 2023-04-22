@@ -9,7 +9,7 @@ from typing import Any
 from aiohttp.client import ClientError, ClientSession
 
 from .exceptions import AuthRequiredException
-from .models import Authentication, Invoices, MonthSummary, PriceData, User
+from .models import Authentication, Invoices, MarketPrices, MonthSummary, User
 
 
 class FrankEnergie:
@@ -180,12 +180,8 @@ class FrankEnergie:
 
     async def prices(
         self, start_date: datetime, end_date: datetime | None = None
-    ) -> tuple(PriceData, PriceData):
-        """Request to API."""
-        if self._session is None:
-            self._session = ClientSession()
-            self._close_session = True
-
+    ) -> MarketPrices:
+        """Get market prices."""
         query_data = {
             "query": """
                 query MarketPrices($startDate: Date!, $endDate: Date!) {
@@ -201,13 +197,7 @@ class FrankEnergie:
             "operationName": "MarketPrices",
         }
 
-        response = await self._query(query_data)
-        return (
-            PriceData(
-                response["data"]["marketPricesElectricity"] if response["data"] else {}
-            ),
-            PriceData(response["data"]["marketPricesGas"] if response["data"] else {}),
-        )
+        return MarketPrices.from_dict(await self._query(query_data))
 
     @property
     def is_authenticated(self) -> bool:

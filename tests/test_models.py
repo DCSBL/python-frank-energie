@@ -141,8 +141,8 @@ def test_market_process_with_expected_parameters():
     )
 
     assert market_prices
-    assert len(market_prices.marketPricesElectricity.price_data) == 24
-    assert len(market_prices.marketPricesGas.price_data) == 24
+    assert len(market_prices.electricity.price_data) == 24
+    assert len(market_prices.gas.price_data) == 24
 
 
 def test_market_process_with_missing_parameters():
