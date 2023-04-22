@@ -117,6 +117,7 @@ class User:
 class MonthSummary:
     actualCostsUntilLastMeterReadingDate: float
     expectedCostsUntilLastMeterReadingDate: float
+    expectedCosts: float
     lastMeterReadingDate: str
 
     @staticmethod
@@ -136,7 +137,17 @@ class MonthSummary:
             expectedCostsUntilLastMeterReadingDate=payload.get(
                 "expectedCostsUntilLastMeterReadingDate"
             ),
+            expectedCosts=payload.get("expectedCosts"),
             lastMeterReadingDate=payload.get("lastMeterReadingDate"),
+        )
+
+    @property
+    def differenceUntilLastMeterReadingDate(self):
+        """The difference between the expected costs and the actual costs."""
+        return round(
+            self.actualCostsUntilLastMeterReadingDate
+            - self.expectedCostsUntilLastMeterReadingDate,
+            2,
         )
 
 

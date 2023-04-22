@@ -93,11 +93,10 @@ class FrankEnergie:
             "query": """
                 query MonthSummary {
                     monthSummary {
-                        _id
                         actualCostsUntilLastMeterReadingDate
                         expectedCostsUntilLastMeterReadingDate
+                        expectedCosts
                         lastMeterReadingDate
-                        __typename
                     }
                 }
             """,
