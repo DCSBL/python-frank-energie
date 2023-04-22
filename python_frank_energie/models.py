@@ -166,7 +166,7 @@ class Price:
     date_till: datetime
     market_price: float
     market_price_tax: float
-    sourcing_markup_rice: float
+    sourcing_markup_price: float
     energy_tax_price: float
 
     def __init__(self, data: dict) -> None:
