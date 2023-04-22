@@ -48,7 +48,7 @@ class User:
     hasCO2Compensation: bool
 
     @staticmethod
-    def from_dict(data: dict[str, str]) -> Authentication:
+    def from_dict(data: dict[str, str]) -> User:
 
         if errors := data.get("errors"):
             raise RequestException(errors[0]["message"])
@@ -73,7 +73,7 @@ class MonthSummary:
     lastMeterReadingDate: str
 
     @staticmethod
-    def from_dict(data: dict[str, str]) -> Authentication:
+    def from_dict(data: dict[str, str]) -> MonthSummary:
 
         if errors := data.get("errors"):
             raise RequestException(errors[0]["message"])
