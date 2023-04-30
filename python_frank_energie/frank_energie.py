@@ -145,11 +145,7 @@ class FrankEnergie:
             "variables": {},
         }
 
-        data = await self._query(query)
-        print(data)
-        return Invoices.from_dict(data)
-
-        # return Invoices.from_dict(await self._query(query))
+        return Invoices.from_dict(await self._query(query))
 
     async def user(self) -> User:
         """Get user data."""
