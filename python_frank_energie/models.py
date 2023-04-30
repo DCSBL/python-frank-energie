@@ -292,9 +292,12 @@ class MarketPrices:
     def from_dict(data: dict[str, str]) -> MarketPrices:
         """Parse the response from the marketPrices query."""
         if errors := data.get("errors"):
+            if errors[0]["message"].startswith("No marketprices found for segment"):
+                return MarketPrices(PriceData(), PriceData())
+
             raise RequestException(errors[0]["message"])
 
-        payload = data.get("data", {})
+        payload = data.get("data")
         if not payload:
             raise RequestException("Unexpected response")
 
