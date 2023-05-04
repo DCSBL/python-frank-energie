@@ -234,3 +234,22 @@ def test_invoices_error_message():
         Invoices.from_dict({"errors": [{"message": "help me"}]})
 
     assert "help me" in str(excinfo.value)
+
+
+def test_invoices_none_data():
+    """Test Invoices.from_dict with None data."""
+    invoices = Invoices.from_dict(
+        {
+            "data": {
+                "invoices": {
+                    "previousPeriodInvoice": None,
+                    "currentPeriodInvoice": None,
+                    "upcomingPeriodInvoice": None,
+                }
+            }
+        }
+    )
+
+    assert invoices.previousPeriodInvoice is None
+    assert invoices.currentPeriodInvoice is None
+    assert invoices.upcomingPeriodInvoice is None
