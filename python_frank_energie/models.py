@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from dateutil import parser
 
 from .exceptions import AuthException, RequestException
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -26,6 +29,8 @@ class Authentication:
     @staticmethod
     def from_dict(data: dict[str, str]) -> Authentication:
         """Parse the response from the login or renewToken mutation."""
+        _LOGGER.debug("Authentication %s", data)
+
         if errors := data.get("errors"):
             raise AuthException(errors[0]["message"])
 
@@ -55,21 +60,26 @@ class Invoices:
         TotalAmount: float
 
         @staticmethod
-        def from_dict(data: dict[str, str]) -> Invoices.Invoice:
+        def from_dict(data: dict[str, str]) -> Invoices.Invoice | None:
             """Parse the response from the invoices query."""
+            if data is None:
+                return None
+
             return Invoices.Invoice(
                 StartDate=parser.parse(data.get("StartDate")),
                 PeriodDescription=data.get("PeriodDescription"),
                 TotalAmount=data.get("TotalAmount"),
             )
 
-    previousPeriodInvoice: Invoice
-    currentPeriodInvoice: Invoice
-    upcomingPeriodInvoice: Invoice
+    previousPeriodInvoice: Invoice | None
+    currentPeriodInvoice: Invoice | None
+    upcomingPeriodInvoice: Invoice | None
 
     @staticmethod
     def from_dict(data: dict[str, str]) -> Invoices:
         """Parse the response from the invoices query."""
+        _LOGGER.debug("Invoices %s", data)
+
         if errors := data.get("errors"):
             raise RequestException(errors[0]["message"])
 
@@ -103,6 +113,8 @@ class User:
     @staticmethod
     def from_dict(data: dict[str, str]) -> User:
         """Parse the response from the me query."""
+        _LOGGER.debug("User %s", data)
+
         if errors := data.get("errors"):
             raise RequestException(errors[0]["message"])
 
@@ -131,6 +143,8 @@ class MonthSummary:
     @staticmethod
     def from_dict(data: dict[str, str]) -> MonthSummary:
         """Parse the response from the monthSummary query."""
+        _LOGGER.debug("MonthSummary %s", data)
+
         if errors := data.get("errors"):
             raise RequestException(errors[0]["message"])
 
@@ -291,6 +305,8 @@ class MarketPrices:
     @staticmethod
     def from_dict(data: dict[str, str]) -> MarketPrices:
         """Parse the response from the marketPrices query."""
+        _LOGGER.debug("Prices %s", data)
+
         if errors := data.get("errors"):
             if errors[0]["message"].startswith("No marketprices found for segment"):
                 return MarketPrices(PriceData(), PriceData())
