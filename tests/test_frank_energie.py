@@ -340,3 +340,32 @@ async def test_prices(aresponses):
 
     assert prices.gas is not None
     assert len(prices.gas.price_data) == 24
+
+
+@pytest.mark.asyncio
+async def test_prices(aresponses):
+    """Test request with authentication.
+
+    'prices' request does not require authentication.
+    """
+    aresponses.add(
+        SIMPLE_DATA_URL,
+        "/",
+        "POST",
+        aresponses.Response(
+            text=load_fixtures("customer_market_prices.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = FrankEnergie(session, auth_token="a", refresh_token="b")
+        prices = await api.userPrices(datetime.utcnow().date())
+        await api.close()
+
+    assert prices.electricity is not None
+    assert len(prices.electricity.price_data) == 24
+
+    assert prices.gas is not None
+    assert len(prices.gas.price_data) == 24
