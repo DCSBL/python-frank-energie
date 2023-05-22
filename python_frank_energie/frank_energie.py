@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import date
 from typing import Any
 
 from aiohttp.client import ClientError, ClientSession
@@ -50,7 +50,7 @@ class FrankEnergie:
         except (asyncio.TimeoutError, ClientError, KeyError) as error:
             raise ValueError(f"Request failed: {error}") from error
 
-    async def login(self, username: str, password: str) -> str:
+    async def login(self, username: str, password: str) -> Authentication:
         """Login and get the authentication token."""
         query = {
             "query": """
@@ -68,7 +68,7 @@ class FrankEnergie:
         self._auth = Authentication.from_dict(await self._query(query))
         return self._auth
 
-    async def renewToken(self, authToken: str, refreshToken: str) -> str:
+    async def renewToken(self, authToken: str, refreshToken: str) -> Authentication:
         """Renew the authentication token."""
         query = {
             "query": """
@@ -175,7 +175,7 @@ class FrankEnergie:
         return User.from_dict(await self._query(query))
 
     async def prices(
-        self, start_date: datetime, end_date: datetime | None = None
+        self, start_date: date, end_date: date | None = None
     ) -> MarketPrices:
         """Get market prices."""
         query_data = {
@@ -194,6 +194,36 @@ class FrankEnergie:
         }
 
         return MarketPrices.from_dict(await self._query(query_data))
+
+    async def userPrices(self, start_date: date) -> MarketPrices:
+        """Get customer market prices."""
+        if self._auth is None:
+            raise AuthRequiredException
+
+        query_data = {
+            "query": """
+                query CustomerMarketPrices($date: String!) {
+                    customerMarketPrices(date: $date) {
+                        electricityPrices {
+                            from till marketPrice marketPriceTax
+                            sourcingMarkupPrice: consumptionSourcingMarkupPrice
+                            energyTaxPrice: energyTax
+                        }
+                        gasPrices {
+                            from till marketPrice marketPriceTax
+                            sourcingMarkupPrice: consumptionSourcingMarkupPrice
+                            energyTaxPrice: energyTax
+                        }
+                    }
+                }
+            """,
+            "variables": {"date": str(start_date)},
+            "operationName": "CustomerMarketPrices",
+        }
+
+        result = await self._query(query_data)
+
+        return MarketPrices.from_userprices_dict(result)
 
     @property
     def is_authenticated(self) -> bool:
