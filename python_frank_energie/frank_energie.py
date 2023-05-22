@@ -195,9 +195,7 @@ class FrankEnergie:
 
         return MarketPrices.from_dict(await self._query(query_data))
 
-    async def userPrices(
-        self, start_date: date
-    ) -> MarketPrices:
+    async def userPrices(self, start_date: date) -> MarketPrices:
         """Get customer market prices."""
         if self._auth is None:
             raise AuthRequiredException
