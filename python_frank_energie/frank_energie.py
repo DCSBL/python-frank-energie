@@ -207,12 +207,12 @@ class FrankEnergie:
                 query CustomerMarketPrices($date: String!) {
                     customerMarketPrices(date: $date) {
                         electricityPrices {
-                            from till marketPrice marketPriceTax 
+                            from till marketPrice marketPriceTax
                             sourcingMarkupPrice: consumptionSourcingMarkupPrice
                             energyTaxPrice: energyTax
                         }
                         gasPrices {
-                            from till marketPrice marketPriceTax 
+                            from till marketPrice marketPriceTax
                             sourcingMarkupPrice: consumptionSourcingMarkupPrice
                             energyTaxPrice: energyTax
                         }

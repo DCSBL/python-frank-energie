@@ -343,7 +343,7 @@ async def test_prices(aresponses):
 
 
 @pytest.mark.asyncio
-async def test_prices(aresponses):
+async def test_user_prices(aresponses):
     """Test request with authentication.
 
     'prices' request does not require authentication.
@@ -360,7 +360,7 @@ async def test_prices(aresponses):
     )
 
     async with aiohttp.ClientSession() as session:
-        api = FrankEnergie(session, auth_token="a", refresh_token="b")
+        api = FrankEnergie(session, auth_token="a", refresh_token="b")  # noqa: S106
         prices = await api.userPrices(datetime.utcnow().date())
         await api.close()
 
