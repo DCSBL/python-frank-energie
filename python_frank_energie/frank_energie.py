@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import date
 from typing import Any
 
 from aiohttp.client import ClientError, ClientSession
@@ -50,7 +50,7 @@ class FrankEnergie:
         except (asyncio.TimeoutError, ClientError, KeyError) as error:
             raise ValueError(f"Request failed: {error}") from error
 
-    async def login(self, username: str, password: str) -> str:
+    async def login(self, username: str, password: str) -> Authentication:
         """Login and get the authentication token."""
         query = {
             "query": """
@@ -68,7 +68,7 @@ class FrankEnergie:
         self._auth = Authentication.from_dict(await self._query(query))
         return self._auth
 
-    async def renewToken(self, authToken: str, refreshToken: str) -> str:
+    async def renewToken(self, authToken: str, refreshToken: str) -> Authentication:
         """Renew the authentication token."""
         query = {
             "query": """
@@ -84,14 +84,12 @@ class FrankEnergie:
         }
 
         json = await self._query(query)
-        print(json)
-
         self._auth = Authentication.from_dict(json)
         return self._auth
 
     async def monthSummary(self) -> MonthSummary:
         """Get month summary data."""
-        if self._auth is None:
+        if not self._auth:
             raise AuthRequiredException
 
         query = {
@@ -175,7 +173,7 @@ class FrankEnergie:
         return User.from_dict(await self._query(query))
 
     async def prices(
-        self, start_date: datetime, end_date: datetime | None = None
+        self, start_date: date, end_date: date | None = None
     ) -> MarketPrices:
         """Get market prices."""
         query_data = {
