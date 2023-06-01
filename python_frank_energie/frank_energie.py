@@ -7,10 +7,10 @@ from datetime import date
 from typing import Any
 
 from aiohttp.client import ClientError, ClientSession
+from homeassistant.core import HomeAssistant
 
 from .exceptions import AuthRequiredException
 from .models import Authentication, Invoices, MarketPrices, MonthSummary, User
-
 
 class FrankEnergie:
     """FrankEnergie API."""
@@ -19,6 +19,7 @@ class FrankEnergie:
 
     def __init__(
         self,
+        hass: HomeAssistant,
         clientsession: ClientSession = None,
         auth_token: str | None = None,
         refresh_token: str | None = None,
@@ -27,9 +28,18 @@ class FrankEnergie:
         self._close_session: bool = False
         self._auth: Authentication | None = None
         self._session = clientsession
+        self._hass = hass
 
         if auth_token is not None or refresh_token is not None:
             self._auth = Authentication(auth_token, refresh_token)
+
+        self._hass.bus.async_listen("frankenergy_token_updated", self._handle_token_updated)
+
+    async def _handle_token_updated(self, event):
+        """Handle the event when the authentication tokens are updated."""
+        self._auth = Authentication(
+            event.data.get("auth_token"), event.data.get("refresh_token")
+        )
 
     async def _query(self, query):
         if self._session is None:
@@ -68,7 +78,7 @@ class FrankEnergie:
         self._auth = Authentication.from_dict(await self._query(query))
         return self._auth
 
-    async def renewToken(self, authToken: str, refreshToken: str) -> Authentication:
+    async def renewToken(self, auth_token: str, refresh_token: str) -> Authentication:
         """Renew the authentication token."""
         query = {
             "query": """
@@ -80,11 +90,20 @@ class FrankEnergie:
                 }
             """,
             "operationName": "RenewToken",
-            "variables": {"authToken": authToken, "refreshToken": refreshToken},
+            "variables": {"authToken": auth_token, "refreshToken": refresh_token},
         }
 
         json = await self._query(query)
-        self._auth = Authentication.from_dict(json)
+        new_auth = Authentication.from_dict(json)
+
+        # Update the authentication tokens in Home Assistant
+        event_data = {
+            "auth_token": new_auth.authToken,
+            "refresh_token": new_auth.refreshToken,
+        }
+        self._hass.bus.async_fire("frankenergy_token_updated", event_data)
+
+        self._auth = new_auth
         return self._auth
 
     async def monthSummary(self) -> MonthSummary:
