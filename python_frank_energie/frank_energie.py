@@ -193,6 +193,36 @@ class FrankEnergie:
 
         return MarketPrices.from_dict(await self._query(query_data))
 
+    async def userPrices(self, start_date: date) -> MarketPrices:
+        """Get customer market prices."""
+        if not self._auth:
+            raise AuthRequiredException
+
+        query_data = {
+            "query": """
+                query CustomerMarketPrices($date: String!) {
+                    customerMarketPrices(date: $date) {
+                        electricityPrices {
+                            from till marketPrice marketPriceTax
+                            sourcingMarkupPrice: consumptionSourcingMarkupPrice
+                            energyTaxPrice: energyTax
+                        }
+                        gasPrices {
+                            from till marketPrice marketPriceTax
+                            sourcingMarkupPrice: consumptionSourcingMarkupPrice
+                            energyTaxPrice: energyTax
+                        }
+                    }
+                }
+            """,
+            "variables": {"date": str(start_date)},
+            "operationName": "CustomerMarketPrices",
+        }
+
+        result = await self._query(query_data)
+
+        return MarketPrices.from_userprices_dict(result)
+
     @property
     def is_authenticated(self) -> bool:
         """Return if client is authenticated.
