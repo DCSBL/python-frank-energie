@@ -141,7 +141,7 @@ class MonthSummary:
     lastMeterReadingDate: str
 
     @staticmethod
-    def from_dict(data: dict[str, str]) -> MonthSummary:
+    def from_dict(data: dict[str, str]) -> MonthSummary | None:
         """Parse the response from the monthSummary query."""
         _LOGGER.debug("MonthSummary %s", data)
 
@@ -322,24 +322,37 @@ class MarketPrices:
             gas=PriceData(payload.get("marketPricesGas")),
         )
 
+@dataclass
+class Consumption:
+    """Consumption data for a specific period."""
+
+    start: str
+    end: str
+    electricity: float
+    gas: float
+
     @staticmethod
-    def from_userprices_dict(data: dict[str, str]) -> MarketPrices:
-        """Parse the response from the marketPrices query."""
-        _LOGGER.debug("Prices %s", data)
+    def from_dict(data: dict[str, str]) -> Consumption:
+        """Parse the response from the consumption query."""
+        _LOGGER.debug("Consumption %s", data)
 
         if errors := data.get("errors"):
-            if errors[0]["message"].startswith("No marketprices found for segment"):
-                return MarketPrices(PriceData(), PriceData())
-
             raise RequestException(errors[0]["message"])
 
-        payload = data.get("data")
+        payload = data.get("data", {})
         if not payload:
             raise RequestException("Unexpected response")
 
-        customerMarketPrices = payload.get("customerMarketPrices")
-
-        return MarketPrices(
-            electricity=PriceData(customerMarketPrices.get("electricityPrices")),
-            gas=PriceData(customerMarketPrices.get("gasPrices")),
+        return Consumption(
+            start=payload.get("start"),
+            end=payload.get("end"),
+            electricity=float(payload.get("electricity", 0)),
+            gas=float(payload.get("gas", 0)),
         )
+
+    @property
+    def duration(self) -> timedelta:
+        """Calculate the duration of the consumption period."""
+        start_date = parser.parse(self.start)
+        end_date = parser.parse(self.end)
+        return end_date - start_date
