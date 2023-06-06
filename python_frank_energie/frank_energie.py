@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 import logging
-
-import aiohttp
-
 from datetime import date
 from typing import Any, Optional
 
-from aiohttp import ClientSession, ClientTimeout, TCPConnector
-from aiohttp.client_exceptions import ClientError
+from aiohttp import ClientSession
+from aiohttp.client_exceptions import ClientError, TimeoutError
 
 from .exceptions import AuthRequiredException
-from .models import Authentication, Invoices, MarketPrices, MonthSummary, User
+from .models import Authentication, Invoices, MarketPrices, MonthSummary, User, Consumption
 
 class RequestFailedException(Exception):
     """Exception raised when a request fails."""
@@ -37,7 +34,15 @@ class FrankEnergie:
         self._auth = Authentication(auth_token, refresh_token)
         self._logger = logging.getLogger(__name__)
 
+    async def _execute_query(self, query_name: str, query: dict) -> dict:
+        """Execute a GraphQL query and handle errors."""
+        try:
+            return await self._query(query)
+        except (ValueError, ClientError) as error:
+            raise RequestFailedException(f"{query_name} failed: {error}") from error
+
     async def _query(self, query):
+        """GraphQL query constructor."""
         try:
             headers = (
                 {"Authorization": f"Bearer {self._auth.authToken}"}
@@ -49,6 +54,15 @@ class FrankEnergie:
                 self.DATA_URL, json=query, headers=headers
             ) as resp:
                 response_json = await resp.json()
+
+                # Log request and response information
+                self._logger.debug("Request URL: %s", resp.url)
+                self._logger.debug("Request Headers: %s", resp.request_info.headers)
+                self._logger.debug("Request JSON Body: %s", query)
+                self._logger.debug("Response Status: %s", resp.status)
+                self._logger.debug("Response Headers: %s", resp.headers)
+                self._logger.debug("Response Body: %s", response_json)
+
                 return response_json
 
         except (TimeoutError, ClientError, KeyError) as error:
@@ -74,11 +88,9 @@ class FrankEnergie:
             "variables": {"email": username, "password": password},
         }
 
-        try:
-            self._auth = Authentication.from_dict(await self._query(query))
-            return self._auth
-        except (TimeoutError, ClientError, KeyError) as error:
-            raise RequestFailedException(f"Login failed: {error}") from error
+        response = await self._execute_query("Login", query)
+        self._auth = Authentication.from_dict(response)
+        return self._auth
 
     async def renewToken(self, auth_token: str, refresh_token: str) -> Authentication:
         """Renew the authentication token."""
@@ -100,18 +112,15 @@ class FrankEnergie:
             "variables": {"authToken": auth_token, "refreshToken": refresh_token},
         }
 
-        try:
-            json = await self._query(query)
-            new_auth = Authentication.from_dict(json)
+        response = await self._execute_query("RenewToken", query)
+        new_auth = Authentication.from_dict(response)
 
-            self._auth = new_auth  # Update the _auth attribute
-            return self._auth
-        except (TimeoutError, ClientError, KeyError) as error:
-            raise RequestFailedException(f"Token renewal failed: {error}") from error
+        self._auth = new_auth
+        return self._auth
 
     async def check_token_validity(self) -> bool:
         """Check if the authentication token is still valid."""
-        if not self._auth or not getattr(self._auth, 'authToken', None):
+        if not self.is_authenticated:
             return False
 
         headers = {
@@ -126,18 +135,18 @@ class FrankEnergie:
             }
         """
 
-        async with self._session.post(
-            self.DATA_URL, json={'query': query}, headers=headers
-        ) as response:
-            # Check the response status and content
-            if response.status == 200:
-                data = await response.json()
-                if 'data' in data and 'checkTokenValidity' in data['data']:
-                    return data['data']['checkTokenValidity'].get('isValid', False)
-                else:
-                    return False
-            else:
-                return False
+        try:
+            async with self._session.post(
+                self.DATA_URL, json={'query': query}, headers=headers
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if 'data' in data and 'checkTokenValidity' in data['data']:
+                        return data['data']['checkTokenValidity'].get('isValid', False)
+        except (TimeoutError, ClientError, KeyError) as error:
+            self._logger.error("Token validity check failed: %s", error)
+
+        return False
 
     async def ensure_authenticated(self) -> bool:
         """Ensure that the client is authenticated and the token is valid.
@@ -181,8 +190,8 @@ class FrankEnergie:
             "variables": {},
         }
 
-        result = await self._query(query)
-        return MonthSummary.from_dict(result)
+        response = await self._execute_query("MonthSummary", query)
+        return MonthSummary.from_dict(response)
 
     async def invoices(self) -> Invoices:
         """Get invoices data.
@@ -218,8 +227,8 @@ class FrankEnergie:
             "variables": {},
         }
 
-        result = await self._query(query)
-        return Invoices.from_dict(result)
+        response = await self._execute_query("Invoices", query)
+        return Invoices.from_dict(response)
 
     async def user(self) -> User:
         """Get user data."""
@@ -246,13 +255,13 @@ class FrankEnergie:
             "variables": {},
         }
 
-        result = await self._query(query)
-        return User.from_dict(result)
+        response = await self._execute_query("Me", query)
+        return Invoices.from_dict(response)
 
     async def prices(
         self, start_date: date, end_date: Optional[date] = None
     ) -> MarketPrices:
-        """Get market prices."""
+        """ Fetch market prices for electricity and gas within a specified date range """
         query = {
             "query": """
                 query MarketPrices($startDate: Date!, $endDate: Date!) {
@@ -281,8 +290,8 @@ class FrankEnergie:
             },
         }
 
-        result = await self._query(query)
-        return MarketPrices.from_dict(result)
+        response = await self._execute_query("MarketPrices", query)
+        return MarketPrices.from_dict(response)
 
     async def userPrices(self, start_date: date) -> MarketPrices:
         """Get customer market prices."""
@@ -317,13 +326,44 @@ class FrankEnergie:
             "operationName": "CustomerMarketPrices",
         }
 
-        result = await self._query(query)   
-        return MarketPrices.from_dict(result)
+        response = await self._execute_query("CustomerMarketPrices", query)
+        return MarketPrices.from_dict(response)
+
+    async def consumption(self, start_date: str, end_date: str) -> Consumption:
+        """Get consumption data for a specified date range.
+
+        Args:
+            start_date (str): Start date in the format 'YYYY-MM-DD'.
+            end_date (str): End date in the format 'YYYY-MM-DD'.
+
+        Returns:
+            Consumption: Consumption object containing the consumption data.
+        """
+        self._check_auth_required()
+        await self.ensure_authenticated()
+
+        query = {
+            "query": """
+                query Consumption($startDate: Date!, $endDate: Date!) {
+                    consumption(startDate: $startDate, endDate: $endDate) {
+                        start
+                        end
+                        electricity
+                        gas
+                    }
+                }
+            """,
+            "operationName": "Consumption",
+            "variables": {"startDate": start_date, "endDate": end_date},
+        }
+
+        response = await self._execute_query("Consumption", query)
+        return Consumption.from_dict(response)
 
     @property
     def is_authenticated(self) -> bool:
         """Check if the client is authenticated."""
-        return self._auth is not None and self._auth.authToken is not None
+        return self._auth and self._auth.authToken
 
     def _check_auth_required(self):
         """Check if authentication is required for the API endpoint."""
@@ -353,3 +393,7 @@ class FrankEnergie:
             _exc_info: Exec type.
         """
         await self.close()
+
+"""
+In Home Assistant, the prevailing naming convention is snake_case. Home Assistant follows the Python community's style guide, which recommends using snake_case for variable names, function names, and method names. This convention is consistent across the Home Assistant codebase, including its core components, integrations, and custom components developed by the community.
+"""
