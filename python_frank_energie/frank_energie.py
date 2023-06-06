@@ -2,15 +2,24 @@
 
 from __future__ import annotations
 
-import asyncio
-from datetime import date
-from typing import Any
+import logging
 
-from aiohttp.client import ClientError, ClientSession
-from homeassistant.core import HomeAssistant
+import aiohttp
+
+from datetime import date
+from typing import Any, Optional
+
+from aiohttp import ClientSession, ClientTimeout, TCPConnector
+from aiohttp.client_exceptions import ClientError
 
 from .exceptions import AuthRequiredException
 from .models import Authentication, Invoices, MarketPrices, MonthSummary, User
+
+class RequestFailedException(Exception):
+    """Exception raised when a request fails."""
+
+    def __init__(self, message="Request failed."):
+        super().__init__(message)
 
 class FrankEnergie:
     """FrankEnergie API."""
@@ -19,49 +28,38 @@ class FrankEnergie:
 
     def __init__(
         self,
-        hass: HomeAssistant,
         clientsession: ClientSession = None,
-        auth_token: str | None = None,
-        refresh_token: str | None = None,
+        auth_token: Optional[str] = None,
+        refresh_token: Optional[str] = None,
     ):
         """Initialize the FrankEnergie client."""
-        self._close_session: bool = False
-        self._auth: Authentication | None = None
-        self._session = clientsession
-        self._hass = hass
-
-        if auth_token is not None or refresh_token is not None:
-            self._auth = Authentication(auth_token, refresh_token)
-
-        self._hass.bus.async_listen("frankenergy_token_updated", self._handle_token_updated)
-
-    async def _handle_token_updated(self, event):
-        """Handle the event when the authentication tokens are updated."""
-        self._auth = Authentication(
-            event.data.get("auth_token"), event.data.get("refresh_token")
-        )
+        self._session = clientsession or ClientSession()
+        self._auth = Authentication(auth_token, refresh_token)
 
     async def _query(self, query):
-        if self._session is None:
-            self._session = ClientSession()
-            self._close_session = True
-
         try:
-            resp = await self._session.post(
-                self.DATA_URL,
-                json=query,
-                headers={"Authorization": f"Bearer {self._auth.authToken}"}
-                if self._auth is not None
-                else None,
+            headers = (
+                {"Authorization": f"Bearer {self._auth.authToken}"}
+                if self.is_authenticated
+                else {}
             )
 
-            return await resp.json()
+            async with self._session.post(
+                self.DATA_URL, json=query, headers=headers
+            ) as resp:
+                response_json = await resp.json()
+                return response_json
 
-        except (asyncio.TimeoutError, ClientError, KeyError) as error:
+        except (TimeoutError, ClientError, KeyError) as error:
             raise ValueError(f"Request failed: {error}") from error
 
     async def login(self, username: str, password: str) -> Authentication:
         """Login and get the authentication token."""
+        if not username:
+            raise ValueError("Username is required.")
+        if not password:
+            raise ValueError("Password is required.")
+
         query = {
             "query": """
                 mutation Login($email: String!, $password: String!) {
@@ -75,11 +73,19 @@ class FrankEnergie:
             "variables": {"email": username, "password": password},
         }
 
-        self._auth = Authentication.from_dict(await self._query(query))
-        return self._auth
+        try:
+            self._auth = Authentication.from_dict(await self._query(query))
+            return self._auth
+        except (TimeoutError, ClientError, KeyError) as error:
+            raise RequestFailedException(f"Login failed: {error}") from error
 
     async def renewToken(self, auth_token: str, refresh_token: str) -> Authentication:
         """Renew the authentication token."""
+        if not auth_token:
+            raise ValueError("Authentication token is required.")
+        if not refresh_token:
+            raise ValueError("Refresh token is required.")
+
         query = {
             "query": """
                 mutation RenewToken($authToken: String!, $refreshToken: String!) {
@@ -93,23 +99,71 @@ class FrankEnergie:
             "variables": {"authToken": auth_token, "refreshToken": refresh_token},
         }
 
-        json = await self._query(query)
-        new_auth = Authentication.from_dict(json)
+        try:
+            json = await self._query(query)
+            new_auth = Authentication.from_dict(json)
 
-        # Update the authentication tokens in Home Assistant
-        event_data = {
-            "auth_token": new_auth.authToken,
-            "refresh_token": new_auth.refreshToken,
+            self._auth = new_auth  # Update the _auth attribute
+            return self._auth
+        except (TimeoutError, ClientError, KeyError) as error:
+            raise RequestFailedException(f"Token renewal failed: {error}") from error
+
+    async def check_token_validity(self) -> bool:
+        """Check if the authentication token is still valid."""
+        if not self._auth or not getattr(self._auth, 'authToken', None):
+            return False
+
+        headers = {
+            "Authorization": f"Bearer {self._auth.authToken}"
         }
-        self._hass.bus.async_fire("frankenergy_token_updated", event_data)
 
-        self._auth = new_auth
-        return self._auth
+        query = """
+            query CheckTokenValidity {
+                checkTokenValidity {
+                    isValid
+                }
+            }
+        """
+
+        async with self._session.post(
+            self.DATA_URL, json={'query': query}, headers=headers
+        ) as response:
+            # Check the response status and content
+            if response.status == 200:
+                data = await response.json()
+                if 'data' in data and 'checkTokenValidity' in data['data']:
+                    return data['data']['checkTokenValidity'].get('isValid', False)
+                else:
+                    return False
+            else:
+                return False
+
+    async def ensure_authenticated(self) -> bool:
+        """Ensure that the client is authenticated and the token is valid.
+        
+        If the token has expired, attempt to renew it using the refresh token.
+        Returns True if the client is authenticated, False otherwise.
+        """
+        if self.is_authenticated and await self.check_token_validity():
+            return True
+
+        if not self._auth or not self._auth.refreshToken:
+            return False
+
+        try:
+            renewed_auth = await self.renewToken(
+                self._auth.authToken, self._auth.refreshToken
+            )
+            self._auth = renewed_auth
+            return True
+        except RequestFailedException:
+            raise AuthRequiredException("Failed to renew authentication token.")
 
     async def monthSummary(self) -> MonthSummary:
         """Get month summary data."""
-        if not self._auth:
-            raise AuthRequiredException
+
+        self._check_auth_required()
+        await self.ensure_authenticated()
 
         query = {
             "query": """
@@ -133,8 +187,8 @@ class FrankEnergie:
 
         Returns a Invoices object, containing the previous, current and upcoming invoice.
         """
-        if self._auth is None:
-            raise AuthRequiredException
+        self._check_auth_required()
+        await self.ensure_authenticated()
 
         query = {
             "query": """
@@ -166,8 +220,8 @@ class FrankEnergie:
 
     async def user(self) -> User:
         """Get user data."""
-        if self._auth is None:
-            raise AuthRequiredException
+        self._check_auth_required()
+        await self.ensure_authenticated()
 
         query = {
             "query": """
@@ -192,42 +246,62 @@ class FrankEnergie:
         return User.from_dict(await self._query(query))
 
     async def prices(
-        self, start_date: date, end_date: date | None = None
+        self, start_date: date, end_date: Optional[date] = None
     ) -> MarketPrices:
         """Get market prices."""
-        query_data = {
+        query = {
             "query": """
                 query MarketPrices($startDate: Date!, $endDate: Date!) {
                     marketPricesElectricity(startDate: $startDate, endDate: $endDate) {
-                       from till marketPrice marketPriceTax sourcingMarkupPrice energyTaxPrice
+                        from
+                        till
+                        marketPrice
+                        marketPriceTax
+                        sourcingMarkupPrice
+                        energyTaxPrice
                     }
                     marketPricesGas(startDate: $startDate, endDate: $endDate) {
-                       from till marketPrice marketPriceTax sourcingMarkupPrice energyTaxPrice
+                        from
+                        till
+                        marketPrice
+                        marketPriceTax
+                        sourcingMarkupPrice
+                        energyTaxPrice
                     }
                 }
             """,
-            "variables": {"startDate": str(start_date), "endDate": str(end_date)},
             "operationName": "MarketPrices",
+            "variables": {
+                "startDate": str(start_date),
+                 "endDate": end_date.isoformat() if end_date else None,
+            },
         }
 
-        return MarketPrices.from_dict(await self._query(query_data))
+        return MarketPrices.from_dict(await self._query(query))
 
     async def userPrices(self, start_date: date) -> MarketPrices:
         """Get customer market prices."""
-        if not self._auth:
-            raise AuthRequiredException
 
-        query_data = {
+        self._check_auth_required()
+        await self.ensure_authenticated()
+
+        query = {
             "query": """
                 query CustomerMarketPrices($date: String!) {
                     customerMarketPrices(date: $date) {
                         electricityPrices {
-                            from till marketPrice marketPriceTax
+                            from
+                            till
+                            marketPrice
+                            marketPriceTax
                             sourcingMarkupPrice: consumptionSourcingMarkupPrice
                             energyTaxPrice: energyTax
                         }
                         gasPrices {
-                            from till marketPrice marketPriceTax
+                            from
+                            till
+                            marketPrice
+                            marketPriceTax
                             sourcingMarkupPrice: consumptionSourcingMarkupPrice
                             energyTaxPrice: energyTax
                         }
@@ -238,22 +312,25 @@ class FrankEnergie:
             "operationName": "CustomerMarketPrices",
         }
 
-        result = await self._query(query_data)
-
-        return MarketPrices.from_userprices_dict(result)
+        return MarketPrices.from_dict(await self._query(query))
 
     @property
     def is_authenticated(self) -> bool:
-        """Return if client is authenticated.
+        """Check if the client is authenticated."""
+        return self._auth is not None and self._auth.authToken is not None
 
-        Does not actually check if the token is valid.
-        """
-        return self._auth is not None
+    def _check_auth_required(self):
+        """Check if authentication is required for the API endpoint."""
+        if not self.is_authenticated:
+            raise AuthRequiredException("Authentication token is missing.")
+
+    def _raise_auth_required(self):
+        """Raise an exception indicating authentication is required."""
+        raise AuthRequiredException("Authentication is required to access this resource.")
 
     async def close(self) -> None:
         """Close client session."""
-        if self._session and self._close_session:
-            await self._session.close()
+        await self._session.close()
 
     async def __aenter__(self) -> FrankEnergie:
         """Async enter.
