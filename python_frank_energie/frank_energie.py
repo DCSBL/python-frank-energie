@@ -35,6 +35,7 @@ class FrankEnergie:
         """Initialize the FrankEnergie client."""
         self._session = clientsession or ClientSession()
         self._auth = Authentication(auth_token, refresh_token)
+        self._logger = logging.getLogger(__name__)
 
     async def _query(self, query):
         try:
@@ -180,7 +181,8 @@ class FrankEnergie:
             "variables": {},
         }
 
-        return MonthSummary.from_dict(await self._query(query))
+        result = await self._query(query)
+        return MonthSummary.from_dict(result)
 
     async def invoices(self) -> Invoices:
         """Get invoices data.
@@ -216,7 +218,8 @@ class FrankEnergie:
             "variables": {},
         }
 
-        return Invoices.from_dict(await self._query(query))
+        result = await self._query(query)
+        return Invoices.from_dict(result)
 
     async def user(self) -> User:
         """Get user data."""
@@ -243,7 +246,8 @@ class FrankEnergie:
             "variables": {},
         }
 
-        return User.from_dict(await self._query(query))
+        result = await self._query(query)
+        return User.from_dict(result)
 
     async def prices(
         self, start_date: date, end_date: Optional[date] = None
@@ -277,7 +281,8 @@ class FrankEnergie:
             },
         }
 
-        return MarketPrices.from_dict(await self._query(query))
+        result = await self._query(query)
+        return MarketPrices.from_dict(result)
 
     async def userPrices(self, start_date: date) -> MarketPrices:
         """Get customer market prices."""
@@ -312,7 +317,8 @@ class FrankEnergie:
             "operationName": "CustomerMarketPrices",
         }
 
-        return MarketPrices.from_dict(await self._query(query))
+        result = await self._query(query)   
+        return MarketPrices.from_dict(result)
 
     @property
     def is_authenticated(self) -> bool:
