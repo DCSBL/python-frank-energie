@@ -6,8 +6,8 @@ import logging
 from datetime import date
 from typing import Any, Optional
 
-from aiohttp import ClientSession
-from aiohttp.client_exceptions import ClientError, TimeoutError
+from aiohttp.client import ClientSession
+from aiohttp.client_exceptions import ClientError
 
 from .exceptions import AuthRequiredException
 from .models import Authentication, Invoices, MarketPrices, MonthSummary, User, Consumption
@@ -42,7 +42,7 @@ class FrankEnergie:
             raise RequestFailedException(f"{query_name} failed: {error}") from error
 
     async def _query(self, query):
-        """GraphQL query constructor."""
+        """Construct and execute a GraphQL query."""
         try:
             headers = (
                 {"Authorization": f"Bearer {self._auth.authToken}"}
