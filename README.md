@@ -20,8 +20,8 @@ This repo uses [Python Poetry](https://python-poetry.org) to easily run CI/CD sc
 
 When making a commit, pre-commit runs to check, format and test the code. If everything passes you can push the changes via a Pull request. There GitHub Actions will check if you did everything right and it will notify me. Feel free to ask me to review your PR.
 
-Some nice or usefull commands:
+Some nice or useful commands:
 - `poetry shell` -> Run commands like `pytest test` with the correct environment, no need to prefix commands with `poetry run ...`
 - `(poetry run) pytest tests` -> Runs the unit tests
 - `(poetry run) pre-commit run --all-files` -> Run all pre-commit steps on all files.
-- `git commit -n ...` -> The `-n` flag allows you to ignore the pre-commit result and make a commit, usefull when you want to commit drafts. All commits form a PR will be squashed so you can do this any time.
+- `git commit -n ...` -> The `-n` flag allows you to ignore the pre-commit result and make a commit, useful when you want to commit drafts. All commits form a PR will be squashed so you can do this any time.
