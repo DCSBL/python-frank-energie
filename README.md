@@ -24,4 +24,4 @@ Some nice or usefull commands:
 - `poetry shell` -> Run commands like `pytest test` with the correct environment, no need to prefix commands with `poetry run ...`
 - `(poetry run) pytest tests` -> Runs the unit tests
 - `(poetry run) pre-commit run --all-files` -> Run all pre-commit steps on all files.
-- `git commit -n ...` -> The `-n` flag allows you to ignore the pre-commit result and make a commit, useful when you want to commit drafts. All commits form a PR will be squashed so you can do this any time.
+- `git commit -n ...` -> The `-n` flag allows you to ignore the pre-commit result and make a commit, usefull when you want to commit drafts. All commits form a PR will be squashed so you can do this any time.
