@@ -83,10 +83,7 @@ class FrankEnergie:
             "variables": {"authToken": authToken, "refreshToken": refreshToken},
         }
 
-        json = await self._query(query)
-        print(json)
-
-        self._auth = Authentication.from_dict(json)
+        self._auth = Authentication.from_dict(await self._query(query))
         return self._auth
 
     async def monthSummary(self) -> MonthSummary:
@@ -221,9 +218,7 @@ class FrankEnergie:
             "operationName": "CustomerMarketPrices",
         }
 
-        result = await self._query(query_data)
-
-        return MarketPrices.from_userprices_dict(result)
+        return MarketPrices.from_userprices_dict(await self._query(query_data))
 
     @property
     def is_authenticated(self) -> bool:
