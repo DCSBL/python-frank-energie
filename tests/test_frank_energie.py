@@ -118,7 +118,7 @@ async def test_renew_token(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
-        auth = await api.renewToken("a", "b")  # noqa: S106
+        auth = await api.renew_token("a", "b")  # noqa: S106
         await api.close()
 
     assert api.is_authenticated is True
@@ -143,7 +143,7 @@ async def test_renew_token_invalid_credentials(aresponses):
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
         with pytest.raises(AuthException):
-            await api.renewToken("a", "b")  # noqa: S106
+            await api.renew_token("a", "b")  # noqa: S106
         await api.close()
 
 
@@ -164,7 +164,7 @@ async def test_renew_token_invalid_response(aresponses):
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
         with pytest.raises(AuthException):
-            await api.renewToken("a", "b")  # noqa: S106
+            await api.renew_token("a", "b")  # noqa: S106
         await api.close()
 
 
@@ -189,7 +189,7 @@ async def test_month_summary(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session, auth_token="a", refresh_token="b")  # noqa: S106
-        summary = await api.monthSummary()
+        summary = await api.month_summary()
         await api.close()
 
     assert summary is not None
@@ -208,7 +208,7 @@ async def test_month_summary_without_authentication(aresponses):
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
         with pytest.raises(AuthRequiredException):
-            await api.monthSummary()
+            await api.month_summary()
         await api.close()
 
 
@@ -361,7 +361,7 @@ async def test_user_prices(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session, auth_token="a", refresh_token="b")  # noqa: S106
-        prices = await api.userPrices(datetime.utcnow().date())
+        prices = await api.user_prices(datetime.utcnow().date())
         await api.close()
 
     assert prices.electricity is not None

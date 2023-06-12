@@ -68,7 +68,7 @@ class FrankEnergie:
         self._auth = Authentication.from_dict(await self._query(query))
         return self._auth
 
-    async def renewToken(self, authToken: str, refreshToken: str) -> Authentication:
+    async def renew_token(self, auth_token: str, refresh_token: str) -> Authentication:
         """Renew the authentication token."""
         query = {
             "query": """
@@ -80,7 +80,7 @@ class FrankEnergie:
                 }
             """,
             "operationName": "RenewToken",
-            "variables": {"authToken": authToken, "refreshToken": refreshToken},
+            "variables": {"authToken": auth_token, "refreshToken": refresh_token},
         }
 
         json = await self._query(query)
@@ -89,7 +89,7 @@ class FrankEnergie:
         self._auth = Authentication.from_dict(json)
         return self._auth
 
-    async def monthSummary(self) -> MonthSummary:
+    async def month_summary(self) -> MonthSummary:
         """Get month summary data."""
         if self._auth is None:
             raise AuthRequiredException
@@ -195,7 +195,7 @@ class FrankEnergie:
 
         return MarketPrices.from_dict(await self._query(query_data))
 
-    async def userPrices(self, start_date: date) -> MarketPrices:
+    async def user_prices(self, start_date: date) -> MarketPrices:
         """Get customer market prices."""
         if self._auth is None:
             raise AuthRequiredException
