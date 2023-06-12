@@ -8,7 +8,7 @@ from typing import Any
 
 from aiohttp.client import ClientError, ClientSession
 
-from .exceptions import AuthRequiredException
+from .exceptions import AuthException, AuthRequiredException
 from .models import Authentication, Invoices, MarketPrices, MonthSummary, User
 
 
@@ -45,10 +45,18 @@ class FrankEnergie:
                 else None,
             )
 
-            return await resp.json()
+            response = await resp.json()
 
         except (asyncio.TimeoutError, ClientError, KeyError) as error:
             raise ValueError(f"Request failed: {error}") from error
+
+        # Catch common error messages and raise a more specific exception
+        if errors := response.get("errors"):
+            for error in errors:
+                if error["message"] == "user-error:auth-not-authorised":
+                    raise AuthException
+
+        return response
 
     async def login(self, username: str, password: str) -> Authentication:
         """Login and get the authentication token."""
@@ -68,8 +76,11 @@ class FrankEnergie:
         self._auth = Authentication.from_dict(await self._query(query))
         return self._auth
 
-    async def renew_token(self, auth_token: str, refresh_token: str) -> Authentication:
+    async def renew_token(self) -> Authentication:
         """Renew the authentication token."""
+        if self._auth is None:
+            raise AuthRequiredException
+
         query = {
             "query": """
                 mutation RenewToken($authToken: String!, $refreshToken: String!) {
@@ -80,7 +91,10 @@ class FrankEnergie:
                 }
             """,
             "operationName": "RenewToken",
-            "variables": {"authToken": auth_token, "refreshToken": refresh_token},
+            "variables": {
+                "authToken": self._auth.authToken,
+                "refreshToken": self._auth.refreshToken,
+            },
         }
 
         self._auth = Authentication.from_dict(await self._query(query))

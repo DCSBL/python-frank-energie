@@ -117,8 +117,8 @@ async def test_renew_token(aresponses):
     )
 
     async with aiohttp.ClientSession() as session:
-        api = FrankEnergie(session)
-        auth = await api.renew_token("a", "b")  # noqa: S106
+        api = FrankEnergie(session, "a", "b")  # noqa: S106
+        auth = await api.renew_token()
         await api.close()
 
     assert api.is_authenticated is True
@@ -141,9 +141,9 @@ async def test_renew_token_invalid_credentials(aresponses):
     )
 
     async with aiohttp.ClientSession() as session:
-        api = FrankEnergie(session)
+        api = FrankEnergie(session, "a", "b")  # noqa: S106
         with pytest.raises(AuthException):
-            await api.renew_token("a", "b")  # noqa: S106
+            await api.renew_token()
         await api.close()
 
 
@@ -162,9 +162,9 @@ async def test_renew_token_invalid_response(aresponses):
     )
 
     async with aiohttp.ClientSession() as session:
-        api = FrankEnergie(session)
+        api = FrankEnergie(session, "a", "b")  # noqa: S106
         with pytest.raises(AuthException):
-            await api.renew_token("a", "b")  # noqa: S106
+            await api.renew_token()
         await api.close()
 
 
