@@ -1377,13 +1377,13 @@ six = ">=1.5"
 
 [[package]]
 name = "pyupgrade"
-version = "3.6.0"
+version = "3.8.0"
 description = "A tool to automatically upgrade syntax for newer versions."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pyupgrade-3.6.0-py2.py3-none-any.whl", hash = "sha256:747d7eb64534c88d775df67b6e4134680d7eed942495193c053240b329693d2d"},
-    {file = "pyupgrade-3.6.0.tar.gz", hash = "sha256:6e888c168f0684babdb6b820a2d70138435eaf43402b42291c789091dd247fba"},
+    {file = "pyupgrade-3.8.0-py2.py3-none-any.whl", hash = "sha256:08d0e6129f5e9da7e7a581bdbea689e0d49c3c93eeaf156a07ae2fd794f52660"},
+    {file = "pyupgrade-3.8.0.tar.gz", hash = "sha256:1facb0b8407cca468dfcc1d13717e3a85aa37b9e6e7338664ad5bfe5ef50c867"},
 ]
 
 [package.dependencies]
@@ -1924,4 +1924,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "25aeb063723e96a4c275b2358271e6cc55242fd26941d5b5114c2ce39caa8be6"
+content-hash = "15efa7e74d9036ef6e9bb3d6c10a3cbcc59ea25e6b548f8e6d2f5363ec7f1c04"
