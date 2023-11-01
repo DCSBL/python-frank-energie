@@ -11,7 +11,7 @@ from typing import Union, Any, Optional, Tuple
 from .exceptions import AuthException, RequestException
 
 from statistics import mean
-from homeassistant.util import dt
+# from homeassistant.util import dt
 from .time_periods import TimePeriod
 
 DEFAULT_ROUND = 5
@@ -1429,7 +1429,7 @@ class PriceData:
         """ Get the market prices for tomorrow"""
         if not self.price_data:
             return None
-        if -1 < dt.now().hour < 15:
+        if -1 < datetime.now().hour < 15:
             return None
 
         today_prices = []
@@ -1448,7 +1448,7 @@ class PriceData:
         """ Get the market prices incl tax for tomorrow"""
         if not self.price_data:
             return None
-        if -1 < dt.now().hour < 15:
+        if -1 < datetime.now().hour < 15:
             return None
 
         today_prices = []
@@ -1467,7 +1467,7 @@ class PriceData:
         """ Get the market prices incl tax and markup for tomorrow"""
         if not self.price_data:
             return None
-        if -1 < dt.now().hour < 15:
+        if -1 < datetime.now().hour < 15:
             return None
 
         today_prices = []
@@ -1503,7 +1503,7 @@ class PriceData:
         """ Get the market prices for tomorrow"""
         if not self.price_data:
             return None
-        if -1 < dt.now().hour < 15:
+        if -1 < datetime.now().hour < 15:
             return None
 
         tomorrow_prices = []
