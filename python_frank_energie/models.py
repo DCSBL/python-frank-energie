@@ -324,7 +324,6 @@ class DeliverySiteList:
 class User:
     """User data, including the current status of the connection."""
 
-    #deliverySites: dict[str, Any]
     deliverySites: DeliverySiteList
     updatedAt: datetime
     email: str
@@ -356,7 +355,6 @@ class User:
         _LOGGER.debug("deliverySites %s", payload.get("deliverySites"))
 
         # delivery_sites = [DeliverySite(Address(**site['address'])) for site in payload.get("deliverySites")]
-        # delivery_site_list = DeliverySiteList(delivery_sites)
 
         return User(
             deliverySites=DeliverySiteList(payload.get("deliverySites")),
@@ -375,19 +373,6 @@ class User:
             UserSettings=payload.get("UserSettings"),
             PushNotificationPriceAlerts=payload.get("PushNotificationPriceAlerts"),
         )
-
-    @property
-    def old_delivery_site_as_dict(self):
-        sites_as_dict = []
-        for site in self.deliverySites:
-            address = site.get('address', {})
-            sites_as_dict.append(DeliverySite(
-                street=address.get('street'),
-                house_number=address.get('houseNumber'),
-                zip_code=address.get('zipCode'),
-                city=address.get('city')
-            ))
-        return sites_as_dict
 
     @property
     def format_delivery_site_as_dict(self):
@@ -435,89 +420,6 @@ class User:
             }
             site_dict[site_name] = site_info
         return site_dict
-
-
-class old_DeliverySite:
-    def __init__(self, site_data):
-        self.site_data = site_data
-
-    def as_dict(self):
-        address = self.site_data.get('address', {})
-        return {
-            "street": address.get('street'),
-            "house_number": address.get('houseNumber'),
-            "zip_code": address.get('zipCode'),
-            "city": address.get('city')
-        }
-
-    def formatted_info(self) -> str:
-        address = self.site_data.get('address', {})
-        return f"{address.get('street')} {address.get('houseNumber')} {address.get('zipCode')} {address.get('city')}"
-
-
-class old_DeliverySiteList:
-    def __init__(self, delivery_sites):
-        self.delivery_sites = [DeliverySite(site) for site in delivery_sites]
-
-    def old_as_list(self):
-        sites = []
-        for index, site in enumerate(self.delivery_sites, start=1):
-            site_info = site.as_dict()
-            site_name = f"Delivery site {index}"
-            sites.append({site_name: self._format_site_info(site_info)})
-        return sites
-
-    def as_list(self):
-        sites = []
-        for index, site in enumerate(self.delivery_sites, start=1):
-            site_info = site.as_dict()
-            site_name = f"Delivery site {index}"
-            sites.append({site_name: site.formatted_info()})
-        return sites
-
-    def old_as_dict(self):
-        site_dict = {}
-        for index, site in enumerate(self.delivery_sites, start=1):
-            site_info = site.as_dict()
-            site_name = f"Delivery site {index}"
-            site_dict[site_name] = site_info
-        return site_dict
-
-    def as_dict(self):
-        site_dict = {}
-        for index, site in enumerate(self.delivery_sites, start=1):
-            site_info = site.as_dict()
-            site_name = f"Delivery site {index}"
-            site_dict[site_name] = site_info._asdict()
-        return site_dict
-
-    def old_as_dict_with_formatted_key(self):
-        site_dict = {}
-        for index, site in enumerate(self.delivery_sites, start=1):
-            site_info = DeliverySite(site).as_dict()
-            site_name = DeliverySite(site)._format_site_info(site_info)
-            site_dict[site_name] = site_info
-        return site_dict
-
-    def as_dict_with_formatted_key(self):
-        site_dict = {}
-        for index, site in enumerate(self.delivery_sites, start=1):
-            site_info = site.as_dict()
-            site_name = site.formatted_info()
-            site_dict[site_name] = site_info._asdict()
-        return site_dict
-
-    def vold_as_dict_with_formatted_key(self):
-        site_dict = {}
-        for index, site in enumerate(self.delivery_sites, start=1):
-            site_info = site.as_dict()
-            site_name = self._format_site_info(site_info)
-            site_dict[site_name] = site_info
-        return site_dict
-
-    def _format_site_info(self, site_info):
-        return f"{site_info['street']} {site_info['house_number']} {site_info['zip_code']} {site_info['city']}"
-
 
 @dataclass
 class MonthInsights:
@@ -603,14 +505,23 @@ class MonthSummary:
         """Calculate the costs per day this month till now."""
         last_meter_reading_date = datetime.strptime(lastMeterReadingDate, '%Y-%m-%d')
         if last_meter_reading_date.day > 1: # skip day one
-            days_till_now = last_meter_reading_date.day-1 # always one day behind
-            return costs_till_now / days_till_now # return the cost divided by the days
+            days_till_last_reading = last_meter_reading_date.day # always one day behind
+            return costs_till_now / days_till_last_reading # return the cost divided by the days
         return costs_till_now # return the cost on the fist day
 
     @property
     def differenceUntilLastMeterReadingDate(self) -> float:
         """The difference between the expected costs and the actual costs."""
         return self.actualCostsUntilLastMeterReadingDate - self.expectedCostsUntilLastMeterReadingDate
+
+    @property
+    def differenceUntilLastMeterReadingDateAvg(self) -> float:
+        """The difference between the expected costs and the actual costs per day."""
+        last_meter_reading_date = datetime.strptime(self.lastMeterReadingDate, '%Y-%m-%d')
+        if last_meter_reading_date.day > 1: # skip day one
+            days_till_last_reading = last_meter_reading_date.day
+            return self.differenceUntilLastMeterReadingDate / days_till_last_reading
+        return self.differenceUntilLastMeterReadingDate
 
 @dataclass
 class Price:
@@ -644,10 +555,7 @@ class Price:
 
     def __init__(self, data: dict) -> None:
         """Parse the response from the prices query."""
-        #self.date_from = parser.parse(data["from"])
-        #self.date_till = parser.parse(data["till"])
-        #self.date_from = dt.as_local(dt.parse_datetime(data['from']))
-        #self.date_till = dt.as_local(dt.parse_datetime(data['till']))
+
         self.date_from = datetime.fromisoformat(data['from'])
         self.date_till = datetime.fromisoformat(data['till'])
 
@@ -939,9 +847,18 @@ class PriceData:
         return next((hour for hour in self.price_data if hour.for_previous_hour), None)
 
     @property
-    def current_hour(self) -> Optional['Price']:
+    def old_current_hour(self) -> Optional['Price']:
         """ Price that's currently applicable. """
         return [hour for hour in self.price_data if hour.for_now][0]
+
+    @property
+    def current_hour(self) -> Optional['Price']:
+        """ Price that's currently applicable. """
+        matching_hours = [hour for hour in self.price_data if hour.for_now]
+        if matching_hours:
+            return matching_hours[0]
+        else: # only occurs when hour.for_now is not in range of price_data
+            return None
 
     @property
     def next_hour(self) -> Optional['Price']:
@@ -1152,7 +1069,7 @@ class PriceData:
 
     def get_future_prices(self) -> list[Price]:
         """Prices for hours after the current one."""
-        return [hour for hour in self.price_data if hour.for_future]
+        return [hour for hour in self.price_data if hour.for_upcoming]
 
     def old_asdict(self, attr) -> dict:
         """Return a dict that can be used as entity attribute data."""
@@ -1614,20 +1531,23 @@ class MarketPrices:
         """Parse the response from the marketPrices query."""
         _LOGGER.debug("Prices %s", data)
 
-        if errors := data.get("errors"):
-            if errors[0]["message"].startswith("No marketprices found for segment"):
-                return MarketPrices(PriceData(), PriceData())
+        if data:
+            if errors := data.get("errors"):
+                if errors[0]["message"].startswith("No marketprices found for segment"):
+                    return MarketPrices(PriceData(), PriceData())
 
-            raise RequestException(errors[0]["message"])
+                raise RequestException(errors[0]["message"])
 
-        payload = data.get("data")
-        if payload is None:
-            raise RequestException("Unexpected response")
+            payload = data.get("data")
+            if payload is None:
+                raise RequestException("Unexpected response")
 
-        customerMarketPrices = payload.get("customerMarketPrices")
-        energy_type = "electricity" if customerMarketPrices.get("electricityPrices") else "gas"
+            customerMarketPrices = payload.get("customerMarketPrices")
+            energy_type = "electricity" if customerMarketPrices.get("electricityPrices") else "gas"
 
-        return MarketPrices(
-            electricity=PriceData(customerMarketPrices.get("electricityPrices")),
-            gas=PriceData(customerMarketPrices.get("gasPrices")),
-        )
+            return MarketPrices(
+                electricity=PriceData(customerMarketPrices.get("electricityPrices")),
+                gas=PriceData(customerMarketPrices.get("gasPrices")),
+            )
+        else:
+            return None
