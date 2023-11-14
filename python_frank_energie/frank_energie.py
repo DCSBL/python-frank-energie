@@ -125,6 +125,9 @@ class FrankEnergie(object):
                     raise AuthRequiredException("Authentication required")
                 elif error["message"] == "Graphql validation error":
                     raise FrankEnergieException("Request failed: Graphql validation error")
+                elif error["message"].startswith("No marketprices found for segment"):
+                    #raise FrankEnergieException("Request failed: %s", error["message"])
+                    return
                 else:
                     print(error["message"])
                     raise AuthException("Authorization error")
