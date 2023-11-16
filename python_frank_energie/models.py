@@ -283,7 +283,7 @@ class Invoices:
             ),
         )
 
-        current_year = datetime.now(timezone.utc).year
+        current_year = datetime.utcnow().year
         previous_year = current_year - 1
 
         invoices_instance.TotalCostsPreviousYear = invoices_instance.calculate_total_costs(previous_year)
@@ -597,18 +597,13 @@ class Price:
             # Calculation of self.market_price_including_tax
             price_excluding_tax = data['marketPriceTax'] / TAX_RATE
             self.market_price_including_tax = price_excluding_tax * (1 + TAX_RATE)
-
-            # Calculation of self.market_price_including_tax_and_markup
-            markup_price = data['sourcingMarkupPrice']
-            #self.market_price_including_tax_and_markup = price_excluding_tax * (1 + (tax_rate + markup_price / price_excluding_tax))
-            self.market_price_including_tax_and_markup = (
-                self.marketPrice + self.marketPriceTax + self.sourcingMarkupPrice
-            )
         else:
             self.market_price_including_tax = self.marketPrice + self.marketPriceTax
-            self.market_price_including_tax_and_markup = (
-                self.marketPrice + self.marketPriceTax + self.sourcingMarkupPrice
-            )
+
+        # Calculation of self.market_price_including_tax_and_markup
+        self.market_price_including_tax_and_markup = (
+            self.marketPrice + self.marketPriceTax + self.sourcingMarkupPrice
+        )
 
         # Check if the "energy_type" key is present in the data dictionary
         print("DATA:",self)
