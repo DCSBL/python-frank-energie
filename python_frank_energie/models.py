@@ -20,7 +20,7 @@ TAX_RATE = 0.21
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 @dataclass
 class Authentication:
