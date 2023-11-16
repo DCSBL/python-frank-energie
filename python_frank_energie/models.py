@@ -126,48 +126,55 @@ class Invoices:
 
     def get_all_invoices_dict_for_previous_year(self) -> dict:
         """Retrieve all invoices for the specified year as a dictionary."""
-        previous_year = datetime.now(timezone.utc).year-1
+        previous_year = datetime.utcnow().year-1
         invoices_dict = {}
 
         for invoice in self.get_invoices_for_year(previous_year):
-            invoices_dict[invoice.PeriodDescription] = {
-                "Start date": invoice.StartDate.astimezone(pytz.timezone('Europe/Amsterdam')),
-                "Period description": invoice.PeriodDescription,
-                "Total amount": invoice.TotalAmount
-            }
+            if invoice.PeriodDescription in invoices_dict:
+                invoices_dict[invoice.PeriodDescription]["Total amount"] += invoice.TotalAmount
+            else:
+                invoices_dict[invoice.PeriodDescription] = {
+                    "Start date": invoice.StartDate.astimezone(pytz.timezone('Europe/Amsterdam')),
+                    "Period description": invoice.PeriodDescription,
+                    "Total amount": invoice.TotalAmount
+                }
 
         return invoices_dict
 
     def get_all_invoices_dict_for_this_year(self) -> dict:
         """Retrieve all invoices for the specified year as a dictionary."""
-        current_year = datetime.now(timezone.utc).year
+        current_year = datetime.utcnow().year
         invoices_dict = {}
 
         for invoice in self.get_invoices_for_year(current_year):
-            invoices_dict[invoice.PeriodDescription] = {
-                "Start date": invoice.StartDate.astimezone(pytz.timezone('Europe/Amsterdam')),
-                "Period description": invoice.PeriodDescription,
-                "Total amount": invoice.TotalAmount
-            }
+            if invoice.PeriodDescription in invoices_dict:
+                invoices_dict[invoice.PeriodDescription]["Total amount"] += invoice.TotalAmount
+            else:
+                invoices_dict[invoice.PeriodDescription] = {
+                    "Start date": invoice.StartDate.astimezone(pytz.timezone('Europe/Amsterdam')),
+                    "Period description": invoice.PeriodDescription,
+                    "Total amount": invoice.TotalAmount
+                }
 
         return invoices_dict
 
     def get_all_invoices_dict(self) -> dict:
-        """Retrieve all invoices as a dictionary."""
-        current_year = datetime.now(timezone.utc).year
+        """Retrieve all invoices as a dictionary and sum duplicates."""
         invoices_dict = {}
 
         sorted_invoices = sorted(self.allPeriodsInvoices, key=lambda invoice: invoice.StartDate)
 
         for invoice in sorted_invoices:
-            invoices_dict[invoice.PeriodDescription] = {
-                "Start date": invoice.StartDate.astimezone(pytz.timezone('Europe/Amsterdam')),
-                "Period description": invoice.PeriodDescription,
-                "Total amount": invoice.TotalAmount
-            }
+            if invoice.PeriodDescription in invoices_dict:
+                invoices_dict[invoice.PeriodDescription]["Total amount"] += invoice.TotalAmount
+            else:
+                invoices_dict[invoice.PeriodDescription] = {
+                    "Start date": invoice.StartDate.astimezone(pytz.timezone('Europe/Amsterdam')),
+                    "Period description": invoice.PeriodDescription,
+                    "Total amount": invoice.TotalAmount
+                }
 
         return invoices_dict
-
 
     def get_invoices_for_year(self, year: int) -> list['Invoice']:
         """Filter invoices based on the specified year, considering timezone difference."""
@@ -198,13 +205,20 @@ class Invoices:
 
         invoices_count = 0
         total_costs = 0.0
+        unique_months = set()
 
         for invoice in invoices:
-            if " tot " not in invoice.PeriodDescription:
+            # Set invoice to PeriodDescription
+            invoice_month = invoice.PeriodDescription
+
+            # Check if the month has already been counted
+            # Do not count duplicate invoices and invoices with " tot " in the PeriodDescription
+            if invoice_month not in unique_months and " tot " not in invoice.PeriodDescription:
+                # ensure that we only count each month once.
                 invoices_count += 1
-                total_costs += invoice.TotalAmount
-            else:
-                total_costs += invoice.TotalAmount
+                unique_months.add(invoice_month)
+            
+            total_costs += invoice.TotalAmount
 
         if invoices_count == 0:
             return None
@@ -218,7 +232,7 @@ class Invoices:
         invoices_count = 0
         total_costs = 0.0
 
-        current_year = datetime.now(timezone.utc).year
+        current_year = datetime.utcnow().year
 
         for invoice in self.allPeriodsInvoices:
             if invoice.StartDate.year == current_year:
@@ -231,7 +245,7 @@ class Invoices:
         if invoices_count == 0:
             return None
 
-        current_month = datetime.now(timezone.utc).month
+        current_month = datetime.utcnow().month
         average_costs = total_costs / invoices_count
 
         if current_month == 1:
@@ -1344,10 +1358,11 @@ class PriceData:
     @property
     def get_tomorrow_prices_market(self) -> list:
         """ Get the market prices for tomorrow"""
-        if not self.price_data:
+        current_hour_utc = datetime.utcnow().hour
+        if not self.price_data or current_hour_utc > 21 or current_hour_utc < 13:
             return None
-        if -1 < datetime.now().hour < 15:
-            return None
+        #if -1 < datetime.now().hour < 15:
+        #    return None
 
         today_prices = []
         tomorrow_prices = []
@@ -1428,7 +1443,6 @@ class PriceData:
             if price.for_tomorrow:
                 tomorrow_prices.append(price.total)
         if tomorrow_prices:
-            #return round(sum(tomorrow_prices) / len(tomorrow_prices), DEFAULT_ROUND)
             return sum(tomorrow_prices) / len(tomorrow_prices)
         return None
 
@@ -1458,7 +1472,10 @@ class PriceData:
         current_hour = self.current_hour
         upcoming_prices = [price for price in self.price_data if price.date_from > current_hour.date_till]
         total_price = sum([price.marketPrice_with_tax for price in upcoming_prices])
-        return total_price / len(upcoming_prices)
+        if upcoming_prices:
+            return total_price / len(upcoming_prices)
+        else:
+            return None
 
     @property
     def upcoming_market_tax_markup_avg(self):
@@ -1466,7 +1483,10 @@ class PriceData:
         current_hour = self.current_hour
         upcoming_prices = [price for price in self.price_data if price.date_from > current_hour.date_till]
         total_price = sum([price.marketPrice_with_tax_and_markup for price in upcoming_prices])
-        return total_price / len(upcoming_prices)
+        if upcoming_prices:
+            return total_price / len(upcoming_prices)
+        else:
+            return None
 
     @property
     def today_gas_before6am(self) -> list[Price]:
