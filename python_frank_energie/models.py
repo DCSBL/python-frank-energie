@@ -117,6 +117,7 @@ class Invoices:
 class User:
     """User data, including the current status of the connection."""
 
+    id: str
     connectionsStatus: str
     firstMeterReadingDate: str
     lastMeterReadingDate: str
@@ -136,6 +137,7 @@ class User:
             raise RequestException("Unexpected response")
 
         return User(
+            id=payload.get("id"),
             connectionsStatus=payload.get("connectionsStatus"),
             firstMeterReadingDate=payload.get("firstMeterReadingDate"),
             lastMeterReadingDate=payload.get("lastMeterReadingDate"),
