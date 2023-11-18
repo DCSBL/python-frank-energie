@@ -258,6 +258,15 @@ class FrankEnergie:
         """
         return self._auth is not None
 
+    def authentication_valid(self) -> bool:
+        """Return if client is authenticated.
+
+        Does not actually check if the token is valid.
+        """
+        if self._auth is None:
+            return False
+        return self._auth.authTokenValid()
+
     async def close(self) -> None:
         """Close client session."""
         if self._session and self._close_session:
