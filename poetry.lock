@@ -1014,21 +1014,6 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
-name = "yamllint"
-version = "1.33.0"
-description = "A linter for YAML files."
-category = "dev"
-optional = false
-python-versions = ">=3.8"
-
-[package.dependencies]
-pathspec = ">=0.5.3"
-pyyaml = "*"
-
-[package.extras]
-dev = ["doc8", "flake8", "flake8-import-order", "rstcheck", "sphinx"]
-
-[[package]]
 name = "yarl"
 version = "1.9.2"
 description = "Yet another URL library"
@@ -1043,7 +1028,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "2fc8bb0c2d264793a29ee9cd19dc97bc69305d08814ae46cdceddafbc5d28a5e"
+content-hash = "498191dc867402b07c63ead5cebe3fb71a84ca3c583e2ef6fa204f9b70eb1886"
 
 [metadata.files]
 aiohttp = []
@@ -1175,5 +1160,4 @@ urllib3 = []
 virtualenv = []
 vulture = []
 wrapt = []
-yamllint = []
 yarl = []

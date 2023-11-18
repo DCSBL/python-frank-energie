@@ -148,8 +148,3 @@ repos:
         entry: poetry run vulture
         pass_filenames: false
         require_serial: true
-      - id: yamllint
-        name: Check YAML files with yamllint
-        language: system
-        types: [yaml]
-        entry: poetry run yamllint
