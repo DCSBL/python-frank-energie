@@ -171,6 +171,7 @@ class FrankEnergie:
                     }
                 }
                 fragment UserFields on User {
+                    id
                     connectionsStatus
                     firstMeterReadingDate
                     lastMeterReadingDate
