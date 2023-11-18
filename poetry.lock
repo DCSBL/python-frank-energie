@@ -686,6 +686,20 @@ plugins = ["importlib-metadata"]
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
+name = "pyjwt"
+version = "2.8.0"
+description = "JSON Web Token implementation in Python"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+crypto = ["cryptography (>=3.4.0)"]
+dev = ["sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.4.0)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "pre-commit"]
+docs = ["sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface"]
+tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
+
+[[package]]
 name = "pylint"
 version = "2.17.7"
 description = "python code static checker"
@@ -1014,7 +1028,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "a446f35d26034af2cead8934794a4f43f570630c7e982ce94fb464e112e263d1"
+content-hash = "498191dc867402b07c63ead5cebe3fb71a84ca3c583e2ef6fa204f9b70eb1886"
 
 [metadata.files]
 aiohttp = []
@@ -1107,6 +1121,7 @@ pyflakes = [
     {file = "pyflakes-2.4.0.tar.gz", hash = "sha256:05a85c2872edf37a4ed30b0cce2f6093e1d0581f8c19d7393122da7e25b2b24c"},
 ]
 pygments = []
+pyjwt = []
 pylint = []
 pyparsing = []
 pytest = []
