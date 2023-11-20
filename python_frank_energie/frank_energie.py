@@ -27,7 +27,20 @@ from .models import (
     User,
 )
 
-VERSION = "5.0.1"
+VERSION = "5.2.1"
+
+class FrankEnergieQuery:
+    def __init__(self, query: str, operation_name: str, variables: Optional[dict[str, Any]] = None):
+        self.query = query
+        self.operation_name = operation_name
+        self.variables = variables or {}
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "query": self.query,
+            "operationName": self.operation_name,
+            "variables": self.variables,
+        }
 
 class FrankEnergie(object):
     """FrankEnergie API."""
@@ -48,7 +61,7 @@ class FrankEnergie(object):
         if auth_token is not None or refresh_token is not None:
             self._auth = Authentication(auth_token, refresh_token)
 
-    async def _query(self, query: dict[str, Any]) -> dict[str, Any]:
+    async def _query(self, query: FrankEnergieQuery) -> dict[str, Any]:
         """Send a query to the FrankEnergie API.
 
         Args:
@@ -74,7 +87,7 @@ class FrankEnergie(object):
             print(f"Request payload: {query}")
 
             async with self._session.post(
-                self.DATA_URL, json=query, headers=headers
+                self.DATA_URL, json=query.to_dict(), headers=headers
             ) as resp:
                 resp.raise_for_status()
                 response = await resp.json()
@@ -254,6 +267,15 @@ class FrankEnergie(object):
             traceback.print_exc()
             raise error
 
+    LOGIN_QUERY = """
+        mutation Login($email: String!, $password: String!) {
+            login(email: $email, password: $password) {
+                authToken
+                refreshToken
+            }
+        }
+    """
+
     async def login(self, username: str, password: str) -> Authentication:
         """Login and retrieve the authentication token.
 
@@ -268,18 +290,11 @@ class FrankEnergie(object):
             AuthException: If the login fails.
         """
         try:
-            query = {
-                "query": """
-                    mutation Login($email: String!, $password: String!) {
-                        login(email: $email, password: $password) {
-                            authToken
-                            refreshToken
-                        }
-                    }
-                """,
-                "operationName": "Login",
-                "variables": {"email": username, "password": password},
-            }
+            query = FrankEnergieQuery(
+                self.LOGIN_QUERY,
+                "Login",
+                {"email": username, "password": password}
+            )
 
             response = await self._query(query)
             auth_data = None
@@ -291,7 +306,6 @@ class FrankEnergie(object):
 
             self._handle_errors(response)
 
-            #return User(user_data)
             return self._auth
 
         except Exception as error:
@@ -314,21 +328,21 @@ class FrankEnergie(object):
         if not self.is_authenticated:
             raise AuthRequiredException("Authentication is required.")
 
-        query = {
-            "query": """
-                mutation RenewToken($authToken: String!, $refreshToken: String!) {
-                    renewToken(authToken: $authToken, refreshToken: $refreshToken) {
-                        authToken
-                        refreshToken
-                    }
+        query = FrankEnergieQuery(
+            """
+            mutation RenewToken($authToken: String!, $refreshToken: String!) {
+                renewToken(authToken: $authToken, refreshToken: $refreshToken) {
+                    authToken
+                    refreshToken
                 }
+            }
             """,
-            "operationName": "RenewToken",
-            "variables": {
+            "RenewToken",
+            {
                 "authToken": self._auth.authToken,
                 "refreshToken": self._auth.refreshToken,
             },
-        }
+        )
 
         self._auth = Authentication.from_dict(await self._query(query))
         return self._auth
@@ -351,15 +365,15 @@ class FrankEnergie(object):
         if not self.is_authenticated:
             raise AuthRequiredException("Authentication is required.")
 
-        query = {
-            "query": """
-                query ActualAndExpectedMeterReadings {
-                    completenessPercentage
-                }
+        query = FrankEnergieQuery(
+            """
+            query ActualAndExpectedMeterReadings {
+                completenessPercentage
+            }
             """,
-            "operationName": "ActualAndExpectedMeterReadings",
-            "variables": {},
-        }
+            "ActualAndExpectedMeterReadings",
+            {},
+        )
 
         return MonthInsights.from_dict(await self._query(query))
 
@@ -381,21 +395,21 @@ class FrankEnergie(object):
         if not self.is_authenticated:
             raise AuthRequiredException("Authentication is required.")
 
-        query = {
-            "query": """
-                query MonthSummary {
-                    monthSummary {
-                        _id
-                        actualCostsUntilLastMeterReadingDate
-                        expectedCostsUntilLastMeterReadingDate
-                        expectedCosts
-                        lastMeterReadingDate
-                    }
+        query = FrankEnergieQuery(
+            """
+            query MonthSummary {
+                monthSummary {
+                    _id
+                    actualCostsUntilLastMeterReadingDate
+                    expectedCostsUntilLastMeterReadingDate
+                    expectedCosts
+                    lastMeterReadingDate
                 }
+            }
             """,
-            "operationName": "MonthSummary",
-            "variables": {},
-        }
+            "MonthSummary",
+            {},
+        )
 
         return MonthSummary.from_dict(await self._query(query))
 
@@ -409,36 +423,36 @@ class FrankEnergie(object):
         if not self.is_authenticated:
             raise AuthRequiredException("Authentication is required.")
 
-        query = {
-            "query": """
-                query Invoices {
-                    invoices {
-                        allInvoices {
-                            StartDate
-                            PeriodDescription
-                            TotalAmount
-                        }
-                        previousPeriodInvoice {
-                            StartDate
-                            PeriodDescription
-                            TotalAmount
-                        }
-                        currentPeriodInvoice {
-                            StartDate
-                            PeriodDescription
-                            TotalAmount
-                        }
-                        upcomingPeriodInvoice {
-                            StartDate
-                            PeriodDescription
-                            TotalAmount
-                        }
+        query = FrankEnergieQuery(
+            """
+            query Invoices {
+                invoices {
+                    allInvoices {
+                        StartDate
+                        PeriodDescription
+                        TotalAmount
+                    }
+                    previousPeriodInvoice {
+                        StartDate
+                        PeriodDescription
+                        TotalAmount
+                    }
+                    currentPeriodInvoice {
+                        StartDate
+                        PeriodDescription
+                        TotalAmount
+                    }
+                    upcomingPeriodInvoice {
+                        StartDate
+                        PeriodDescription
+                        TotalAmount
                     }
                 }
+            }
             """,
-            "operationName": "Invoices",
-            "variables": {},
-        }
+            "Invoices",
+            {},
+        )
 
         return Invoices.from_dict(await self._query(query))
 
@@ -457,103 +471,103 @@ class FrankEnergie(object):
         if not self.is_authenticated:
             raise AuthRequiredException("Authentication is required.")
 
-        query = {
-            "query": """
-                query Me {
-                    me {
-                        ...UserFields
-                    }
+        query = FrankEnergieQuery(
+            """
+            query Me {
+                me {
+                    ...UserFields
                 }
-                fragment UserFields on User {
-                    InviteLinkUser{
-                        awardRewardType
-                        backendOnly
-                        createdAt
-                        description
-                        discountPerConnection
-                        fromName
-                        id
-                        imageUrl
-                        slug
-                        status
-                        tintColor
-                        treesAmountPerConnection
-                        type
-                        updatedAt
-                        usedCount
-                    }
-                    Organization{
-                        Email
-                    }
-                    OrganizationId
-                    PushNotificationPriceAlerts{
-                        isEnabled
-                    }
-                    Signup{
-                        User{
-                            email
-                        }
-                    }
-                    UserSettings{
-                        rewardPayoutPreference
-                    }
-                    PaymentAuthorizations{
-                        status
-                    }
-                    activePaymentAuthorization{
-                        status
-                    }
-                    adminRights
-                    updatedAt
+            }
+            fragment UserFields on User {
+                InviteLinkUser{
+                    awardRewardType
+                    backendOnly
                     createdAt
-                    deliverySites{
-                        address{
-                            street
-                            houseNumber
-                            zipCode
-                            city
-                        }
-                    }
-                    email
-                    connectionsStatus
-                    connections{
-                        status
-                    }
-                    firstMeterReadingDate
-                    firstName
-                    friendsCount
-                    hasInviteLink
+                    description
+                    discountPerConnection
+                    fromName
                     id
-                    lastLogin
-                    lastMeterReadingDate
-                    advancedPaymentAmount
-                    treesCount
-                    hasCO2Compensation
+                    imageUrl
+                    slug
                     status
-                    meterReadingExportPeriods{
-                        EAN
-                        User{
-                            email
-                            firstName
-                            lastName
-                        }
-                        cluster
-                        createdAt
-                        from
-                        till
-                        period
-                        segment
-                        type
-                        updatedAt
-                    }
-                    notification
-                    reference
-                    role
+                    tintColor
+                    treesAmountPerConnection
+                    type
+                    updatedAt
+                    usedCount
                 }
+                Organization{
+                    Email
+                }
+                OrganizationId
+                PushNotificationPriceAlerts{
+                    isEnabled
+                }
+                Signup{
+                    User{
+                        email
+                    }
+                }
+                UserSettings{
+                    rewardPayoutPreference
+                }
+                PaymentAuthorizations{
+                    status
+                }
+                activePaymentAuthorization{
+                    status
+                }
+                adminRights
+                updatedAt
+                createdAt
+                deliverySites{
+                    address{
+                        street
+                        houseNumber
+                        zipCode
+                        city
+                    }
+                }
+                email
+                connectionsStatus
+                connections{
+                    status
+                }
+                firstMeterReadingDate
+                firstName
+                friendsCount
+                hasInviteLink
+                id
+                lastLogin
+                lastMeterReadingDate
+                advancedPaymentAmount
+                treesCount
+                hasCO2Compensation
+                status
+                meterReadingExportPeriods{
+                    EAN
+                    User{
+                        email
+                        firstName
+                        lastName
+                    }
+                    cluster
+                    createdAt
+                    from
+                    till
+                    period
+                    segment
+                    type
+                    updatedAt
+                }
+                notification
+                reference
+                role
+            }
             """,
-            "operationName": "Me",
-            "variables": {},
-        }
+            "Me",
+            {},
+        )
 
         return User.from_dict(await self._query(query))
 
@@ -566,30 +580,31 @@ class FrankEnergie(object):
             start_date = date.today()
         if not end_date:
             end_date = date.today() + timedelta(days=1)
-        query = {
-            "query": """
-                query MarketPrices($startDate: Date!, $endDate: Date!) {
-                    marketPricesElectricity(startDate: $startDate, endDate: $endDate) {
-                       from
-                       till
-                       marketPrice
-                       marketPriceTax
-                       sourcingMarkupPrice
-                       energyTaxPrice
-                    }
-                    marketPricesGas(startDate: $startDate, endDate: $endDate) {
-                       from
-                       till
-                       marketPrice
-                       marketPriceTax
-                       sourcingMarkupPrice
-                       energyTaxPrice
-                    }
+
+        query = FrankEnergieQuery(
+            """
+            query MarketPrices($startDate: Date!, $endDate: Date!) {
+                marketPricesElectricity(startDate: $startDate, endDate: $endDate) {
+                from
+                till
+                marketPrice
+                marketPriceTax
+                sourcingMarkupPrice
+                energyTaxPrice
                 }
+                marketPricesGas(startDate: $startDate, endDate: $endDate) {
+                from
+                till
+                marketPrice
+                marketPriceTax
+                sourcingMarkupPrice
+                energyTaxPrice
+                }
+            }
             """,
-            "variables": {"startDate": str(start_date), "endDate": str(end_date)},
-            "operationName": "MarketPrices",
-        }
+            "MarketPrices",
+            {"startDate": str(start_date), "endDate": str(end_date)},
+        )
 
         return MarketPrices.from_dict(await self._query(query))
 
@@ -605,36 +620,36 @@ class FrankEnergie(object):
         if not end_date:
             end_date = date.today() + timedelta(days=1)
 
-        query = {
-            "query": """
-                query CustomerMarketPrices($date: String!) {
-                    customerMarketPrices(date: $date) {
-                        electricityPrices {
-                            id
-                            date
-                            from
-                            till
-                            marketPrice
-                            marketPriceTax
-                            sourcingMarkupPrice: consumptionSourcingMarkupPrice
-                            energyTaxPrice: energyTax
-                        }
-                        gasPrices {
-                            id
-                            date
-                            from
-                            till
-                            marketPrice
-                            marketPriceTax
-                            sourcingMarkupPrice: consumptionSourcingMarkupPrice
-                            energyTaxPrice: energyTax
-                        }
+        query = FrankEnergieQuery(
+            """
+            query CustomerMarketPrices($date: String!) {
+                customerMarketPrices(date: $date) {
+                    electricityPrices {
+                        id
+                        date
+                        from
+                        till
+                        marketPrice
+                        marketPriceTax
+                        sourcingMarkupPrice: consumptionSourcingMarkupPrice
+                        energyTaxPrice: energyTax
+                    }
+                    gasPrices {
+                        id
+                        date
+                        from
+                        till
+                        marketPrice
+                        marketPriceTax
+                        sourcingMarkupPrice: consumptionSourcingMarkupPrice
+                        energyTaxPrice: energyTax
                     }
                 }
+            }
             """,
-            "variables": {"date": str(start_date)},
-            "operationName": "CustomerMarketPrices",
-        }
+            "CustomerMarketPrices",
+            {"date": str(start_date)},
+        )
 
         return MarketPrices.from_userprices_dict(await self._query(query))
 
@@ -648,6 +663,14 @@ class FrankEnergie(object):
         Does not actually check if the token is valid.
         """
         return self._auth is not None and self._auth.authToken is not None
+
+    def authentication_valid(self) -> bool:
+        """Return if client is authenticated.
+        Does not actually check if the token is valid.
+        """
+        if self._auth is None:
+            return False
+        return self._auth.authTokenValid()
 
     async def close(self) -> None:
         """Close client session."""
@@ -697,5 +720,10 @@ class FrankEnergie(object):
         return "Diagnostic data"
 
     
-    #introspection_result = introspect_schema(DATA_URL)
-    #print(introspection_result)
+#frank_energie_instance = FrankEnergie()
+
+# Call the introspect_schema method on the instance
+#introspection_result = frank_energie_instance.introspect_schema()
+
+# Print the result
+#print("Introspection Result:", introspection_result)
