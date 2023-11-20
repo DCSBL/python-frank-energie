@@ -13,10 +13,16 @@ class TimePeriod(Enum):
     - `TimePeriod.TODAY` represents the current day.
     - `TimePeriod.TOMORROW` represents the next day.
     - `TimePeriod.UPCOMING` represents all future hours.
-    - `TimePeriod.BEFORE_6AM` represents all hours before 6am of the current day.
-    - `TimePeriod.AFTER_6AM` represents all hours after 6am of the current day.
-    - `TimePeriod.TOMORROW_BEFORE_6AM` represents all hours before 6am of the next day.
-    - `TimePeriod.TOMORROW_AFTER_6AM` represents all hours after 6am of the next day.
+    - `TimePeriod.BEFORE_6AM` represents all hours before 6 am of the current day.
+    - `TimePeriod.AFTER_6AM` represents all hours after 6 am of the current day.
+    - `TimePeriod.TOMORROW_BEFORE_6AM` represents all hours before 6 am of the next day.
+    - `TimePeriod.TOMORROW_AFTER_6AM` represents all hours after 6 am of the next day.
+    - `TimePeriod.PREVIOUS_MONTH` represents all invoices for the previous month.
+    - `TimePeriod.CURRENT_MONTH` represents all invoices for the current month.
+    - `TimePeriod.NEXT_MONTH` represents all invoices for the next month.
+    - `TimePeriod.CURRENT_YEAR` represents all invoices for the current year.
+    - `TimePeriod.PREVIOUS_YEAR` represents all invoices for the previous year.
+    - `TimePeriod.ALLTIME` represents all prices or invoices.
     """
 
     PREVIOUS_HOUR = 'previous_hour'  # The hour before the current hour.
@@ -30,6 +36,12 @@ class TimePeriod(Enum):
     AFTER_6AM = 'after_6am'  # All hours after 6am of the current day.
     TOMORROW_BEFORE_6AM = 'tomorrow_before_6am'  # All hours before 6am of the next day.
     TOMORROW_AFTER_6AM = 'tomorrow_after_6am'  # All hours after 6am of the next day.
+    PREVIOUS_MONTH = 'previous_month'  # All invoices for previous month.
+    CURRENT_MONTH = 'current_month'  # All invoices for current month.
+    NEXT_MONTH = 'next_month'  # All invoices for previous month.
+    CURRENT_YEAR = 'current_year'  # All invoices for current year.
+    PREVIOUS_YEAR = 'previous_year'  # All invoices for previous year.
+    ALLTIME = "all_time" # All prices or invoices
 
     def __str__(self):
         return self.value
