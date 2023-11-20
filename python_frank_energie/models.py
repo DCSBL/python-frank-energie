@@ -2,12 +2,14 @@
 # python_frank_energie/models.py
 
 import logging
+import jwt
 import pytz
 import statistics
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, time, datetime, timedelta, timezone
 from dateutil import parser
-from typing import Union, Any, Optional, Tuple
+from typing import Union, Any, Optional, Tuple, Set
 from .exceptions import AuthException, RequestException
 
 from statistics import mean
@@ -58,6 +60,17 @@ class Authentication:
         """Extract the login or renewToken payload from the data dictionary."""
         return data.get("data", {}).get("login") or data.get("data", {}).get("renewToken")
 
+    def authTokenValid(self, tz: timezone = timezone.utc) -> bool:
+        """Return that authToken is valid according to expiration time."""
+        authTokenDecoded = jwt.decode(
+            self.authToken,
+            verify=True,
+            algorithms=["HS256"],
+            options={"verify_signature": False},
+        )
+        return datetime.fromtimestamp(
+            authTokenDecoded["exp"], tz=timezone.utc
+        ) > datetime.now(tz=tz)
 
 class Invoice:
     """Represents invoice information, including the start date, period description, and total amount."""
@@ -158,6 +171,18 @@ class Invoices:
 
         return invoices_dict
 
+    def get_all_invoices_dict_per_year(self) -> dict:
+        """Calculate totals per year and return as a dictionary."""
+        all_invoices_dict = defaultdict(lambda: {"Total amount": 0.0})
+
+        for invoice in self.allPeriodsInvoices:
+            year = invoice.StartDate.year
+            all_invoices_dict[year]["Start date"] = invoice.StartDate.astimezone(pytz.timezone('Europe/Amsterdam'))
+            all_invoices_dict[year]["Period description"] = f"Total for {year}"
+            all_invoices_dict[year]["Total amount"] += invoice.TotalAmount
+
+        return dict(all_invoices_dict)
+
     def get_all_invoices_dict(self) -> dict:
         """Retrieve all invoices as a dictionary and sum duplicates."""
         invoices_dict = {}
@@ -213,7 +238,7 @@ class Invoices:
 
             # Check if the month has already been counted
             # Do not count duplicate invoices and invoices with " tot " in the PeriodDescription
-            if invoice_month not in unique_months and " tot " not in invoice.PeriodDescription:
+            if invoice_month not in unique_months and " tot " not in invoice_month:
                 # ensure that we only count each month once.
                 invoices_count += 1
                 unique_months.add(invoice_month)
@@ -224,6 +249,29 @@ class Invoices:
             return None
 
         average_costs = total_costs / invoices_count
+
+        return average_costs
+
+    def get_unique_years(self) -> Set[int]:
+        """Get the unique years present in allPeriodsInvoices."""
+        unique_years = {invoice.StartDate.year for invoice in self.allPeriodsInvoices}
+        return unique_years
+
+    def calculate_average_costs_per_year(self) -> Optional[float]:
+        """Calculate the average costs for the specified year."""
+        invoices = self.allPeriodsInvoices
+
+        if not invoices:
+            return None
+
+        total_costs = sum(invoice.TotalAmount for invoice in invoices)
+        unique_years_count = len(self.get_unique_years())
+
+        # Avoid division by zero
+        if unique_years_count == 0:
+            return None
+
+        average_costs = total_costs / unique_years_count
 
         return average_costs
 
@@ -338,6 +386,7 @@ class DeliverySiteList:
 class User:
     """User data, including the current status of the connection."""
 
+    id: str
     deliverySites: DeliverySiteList
     updatedAt: datetime
     email: str
@@ -371,6 +420,7 @@ class User:
         # delivery_sites = [DeliverySite(Address(**site['address'])) for site in payload.get("deliverySites")]
 
         return User(
+            id=payload.get("id"),
             deliverySites=DeliverySiteList(payload.get("deliverySites")),
             updatedAt=datetime.fromisoformat(payload.get("updatedAt")),
             email=payload.get("email"),
