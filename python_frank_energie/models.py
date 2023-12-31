@@ -19,9 +19,9 @@ DEFAULT_ROUND = 5
 TAX_RATE = 0.21
 
 
-_LOGGER: logging.Logger = logging.getLogger(__package__)
+_LOGGER: logging.Logger = logging.getLogger(__name__)
 
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 
 @dataclass
 class Authentication:
