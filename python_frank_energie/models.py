@@ -13,7 +13,6 @@ from typing import Union, Any, Optional, Tuple, Set
 from .exceptions import AuthException, RequestException
 
 from statistics import mean
-# from homeassistant.util import dt
 from .time_periods import TimePeriod
 
 DEFAULT_ROUND = 5
@@ -382,6 +381,52 @@ class DeliverySiteList:
             site_dict[site_name] = site.address.__dict__
         return site_dict
 
+class DailyConsumption:
+    def __init__(self, date: str, consumption_kwh: float):
+        """
+        Initialize a DailyConsumption instance.
+
+        Parameters:
+        - date (str): The date of the daily consumption.
+        - consumption_kwh (float): The energy consumption in kilowatt-hours for the specified date.
+        """
+        self.date = date
+        self.consumption_kwh = consumption_kwh
+
+class EnergyConsumption:
+    def __init__(self, user_id: str, daily_consumption: list[DailyConsumption]):
+        """
+        Initialize an EnergyConsumption instance.
+
+        Parameters:
+        - user_id (str): The unique identifier of the user.
+        - daily_consumption (List[DailyConsumption]): A list of DailyConsumption instances representing daily energy consumption.
+        """
+        self.user_id = user_id
+        self.daily_consumption = daily_consumption
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Optional['EnergyConsumption']:
+        """
+        Create an EnergyConsumption instance from a dictionary.
+
+        Parameters:
+        - data (Dict[str, Any]): The input dictionary containing user and energy consumption data.
+
+        Returns:
+        - EnergyConsumption: An instance of the EnergyConsumption class.
+        """
+        user_data = data.get("user", {})
+        user_id = user_data.get("id")
+        daily_consumption_data = user_data.get("energyConsumption", {}).get("daily", [])
+
+        daily_consumption = [
+            DailyConsumption(date=item.get("date"), consumption_kwh=item.get("consumptionKwh"))
+            for item in daily_consumption_data
+        ]
+
+        return cls(user_id, daily_consumption)
+
 @dataclass
 class User:
     """User data, including the current status of the connection."""
@@ -660,9 +705,11 @@ class Price:
         if "energy_type" in data:
             self.energy_type = data["energy_type"]
             if self.energy_type == "electricity":
-                self.energy_tax_price = 0.15239 # electricity tax
+                #self.energy_tax_price = 0.15239 # electricity tax 2023
+                self.energy_tax_price = 0.13165 # electricity tax 2024
             if self.energy_type == "gas":
-                self.energy_tax_price = 0.5927 # gas tax
+                #self.energy_tax_price = 0.5927 # gas tax 2023
+                self.energy_tax_price = 0.70544 # gas tax 2024
         else:
             self.energy_type = None
 
@@ -1129,18 +1176,6 @@ class PriceData:
     def get_future_prices(self) -> list[Price]:
         """Prices for hours after the current one."""
         return [hour for hour in self.price_data if hour.for_upcoming]
-
-    def old_asdict(self, attr) -> dict:
-        """Return a dict that can be used as entity attribute data."""
-        result = []
-        for e in self.price_data:
-            data = {
-                "from": e.date_from,
-                "till": e.date_till,
-                "price": getattr(e, attr)
-            }
-            result.append(data)
-        return result
 
     @property
     def get_upcoming_prices(self):
