@@ -1,7 +1,6 @@
 """Tests for Frank Energie Models."""
 
 import json
-from datetime import datetime
 
 import pytest
 from freezegun import freeze_time
@@ -199,22 +198,12 @@ def test_market_prices_pricedata_next_hour():
 #
 
 
-def test_invoices_with_expected_parameters():
+def test_invoices_with_expected_parameters(snapshot: SnapshotAssertion):
     """Test Invoices.from_dict with expected parameters."""
     invoices = Invoices.from_dict(json.loads(load_fixtures("invoices.json")))
 
     assert invoices
-    assert invoices.previousPeriodInvoice.StartDate == datetime(2023, 3, 1)
-    assert invoices.previousPeriodInvoice.PeriodDescription == "Maart 2023"
-    assert invoices.previousPeriodInvoice.TotalAmount == 140.12
-
-    assert invoices.currentPeriodInvoice.StartDate == datetime(2023, 4, 1)
-    assert invoices.currentPeriodInvoice.PeriodDescription == "April 2023"
-    assert invoices.currentPeriodInvoice.TotalAmount == 80.34
-
-    assert invoices.upcomingPeriodInvoice.StartDate == datetime(2023, 5, 1)
-    assert invoices.upcomingPeriodInvoice.PeriodDescription == "Mei 2023"
-    assert invoices.upcomingPeriodInvoice.TotalAmount == 80.34
+    assert invoices == snapshot
 
 
 def test_invoices_with_missing_parameters():

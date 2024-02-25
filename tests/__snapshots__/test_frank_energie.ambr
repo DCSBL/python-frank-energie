@@ -1,4 +1,7 @@
 # serializer version: 1
+# name: test_invoices
+  Invoices(previousPeriodInvoice=Invoices.Invoice(StartDate=datetime.datetime(2023, 3, 1, 0, 0), PeriodDescription='Maart 2023', TotalAmount=140.12), currentPeriodInvoice=Invoices.Invoice(StartDate=datetime.datetime(2023, 4, 1, 0, 0), PeriodDescription='April 2023', TotalAmount=80.34), upcomingPeriodInvoice=Invoices.Invoice(StartDate=datetime.datetime(2023, 5, 1, 0, 0), PeriodDescription='Mei 2023', TotalAmount=80.34))
+# ---
 # name: test_me
   Me(id='vb10h3v01nfb0vh1f', email='contact@email.nl', countryCode='NL', advancedPaymentAmount=100.0, treesCount=None, hasInviteLink=True, hasCO2Compensation=False)
 # ---

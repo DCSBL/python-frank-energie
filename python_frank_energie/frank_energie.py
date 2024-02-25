@@ -122,18 +122,55 @@ class FrankEnergie:
 
         return MonthSummary.from_dict(await self._query(query))
 
-    async def invoices(self) -> Invoices:
+    async def invoices(self, site_reference: str) -> Invoices:
         """Get invoices data.
 
         Returns a Invoices object, containing the previous, current and upcoming invoice.
+
+        Full query:
+        query Invoices($siteReference: String!) {
+            invoices(siteReference: $siteReference) {
+                _id
+                previousPeriodInvoice {
+                id
+                StartDate
+                PeriodDescription
+                TotalAmount
+                __typename
+                }
+                currentPeriodInvoice {
+                id
+                StartDate
+                PeriodDescription
+                TotalAmount
+                __typename
+                }
+                upcomingPeriodInvoice {
+                id
+                StartDate
+                PeriodDescription
+                TotalAmount
+                __typename
+                }
+                allInvoices {
+                id
+                StartDate
+                PeriodDescription
+                TotalAmount
+                __typename
+                }
+                __typename
+            }
+        }
+
         """
         if self._auth is None:
             raise AuthRequiredException
 
         query = {
             "query": """
-                query Invoices {
-                    invoices {
+                query Invoices($siteReference: String!) {
+                    invoices(siteReference: $siteReference) {
                         previousPeriodInvoice {
                             StartDate
                             PeriodDescription
@@ -153,7 +190,7 @@ class FrankEnergie:
                 }
             """,
             "operationName": "Invoices",
-            "variables": {},
+            "variables": {"siteReference": site_reference},
         }
 
         return Invoices.from_dict(await self._query(query))
