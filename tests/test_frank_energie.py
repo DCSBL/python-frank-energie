@@ -219,7 +219,7 @@ async def test_month_summary_without_authentication(aresponses):
 
 
 @pytest.mark.asyncio
-async def test_invoices(aresponses):
+async def test_invoices(aresponses, snapshot: SnapshotAssertion):
     """Test request with authentication."""
     aresponses.add(
         SIMPLE_DATA_URL,
@@ -234,21 +234,11 @@ async def test_invoices(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session, auth_token="a", refresh_token="b")  # noqa: S106
-        invoices = await api.invoices()
+        invoices = await api.invoices("1234AB 10")
         await api.close()
 
     assert invoices is not None
-    assert invoices.previousPeriodInvoice.StartDate == datetime(2023, 3, 1)
-    assert invoices.previousPeriodInvoice.PeriodDescription == "Maart 2023"
-    assert invoices.previousPeriodInvoice.TotalAmount == 140.12
-
-    assert invoices.currentPeriodInvoice.StartDate == datetime(2023, 4, 1)
-    assert invoices.currentPeriodInvoice.PeriodDescription == "April 2023"
-    assert invoices.currentPeriodInvoice.TotalAmount == 80.34
-
-    assert invoices.upcomingPeriodInvoice.StartDate == datetime(2023, 5, 1)
-    assert invoices.upcomingPeriodInvoice.PeriodDescription == "Mei 2023"
-    assert invoices.upcomingPeriodInvoice.TotalAmount == 80.34
+    assert invoices == snapshot
 
 
 @pytest.mark.asyncio
@@ -260,7 +250,7 @@ async def test_invoices_without_authentication(aresponses):
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
         with pytest.raises(AuthRequiredException):
-            await api.invoices()
+            await api.invoices("1234AB 10")
         await api.close()
 
 
