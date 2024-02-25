@@ -315,46 +315,6 @@ class FrankEnergie:
                     treesCount
                     hasInviteLink
                     hasCO2Compensation
-                    connections(siteReference: $siteReference) {
-                        id
-                        connectionId
-                        EAN
-                        segment
-                        status
-                        contractStatus
-                        estimatedFeedIn
-                        firstMeterReadingDate
-                        lastMeterReadingDate
-                        meterType
-                        externalDetails {
-                            gridOperator
-                            address {
-                                street
-                                houseNumber
-                                houseNumberAddition
-                                zipCode
-                                city
-                            }
-                        }
-                    }
-                    deliverySites {
-                        reference
-                        segments
-                        address {
-                            street
-                            houseNumber
-                            houseNumberAddition
-                            zipCode
-                            city
-                        }
-                        addressHasMultipleSites
-                        status
-                        propositionType
-                        deliveryStartDate
-                        deliveryEndDate
-                        firstMeterReadingDate
-                        lastMeterReadingDate
-                    }
                 }
             """,
             "operationName": "Me",
