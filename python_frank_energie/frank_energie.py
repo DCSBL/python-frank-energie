@@ -100,15 +100,30 @@ class FrankEnergie:
         self._auth = Authentication.from_dict(await self._query(query))
         return self._auth
 
-    async def month_summary(self) -> MonthSummary:
-        """Get month summary data."""
+    async def month_summary(self, site_reference: str) -> MonthSummary:
+        """Get month summary data.
+
+        Returns a MonthSummary object, containing the actual and expected costs until the last meter reading date.
+
+        Full query:
+        query MonthSummary($siteReference: String!) {
+            monthSummary(siteReference: $siteReference) {
+                _id
+                lastMeterReadingDate
+                expectedCostsUntilLastMeterReadingDate
+                actualCostsUntilLastMeterReadingDate
+                meterReadingDayCompleteness
+                gasExcluded
+            }
+        }
+        """
         if self._auth is None:
             raise AuthRequiredException
 
         query = {
             "query": """
-                query MonthSummary {
-                    monthSummary {
+                query MonthSummary($siteReference: String!) {
+                    monthSummary(siteReference: $siteReference) {
                         actualCostsUntilLastMeterReadingDate
                         expectedCostsUntilLastMeterReadingDate
                         expectedCosts
@@ -117,7 +132,7 @@ class FrankEnergie:
                 }
             """,
             "operationName": "MonthSummary",
-            "variables": {},
+            "variables": {"siteReference": site_reference},
         }
 
         return MonthSummary.from_dict(await self._query(query))

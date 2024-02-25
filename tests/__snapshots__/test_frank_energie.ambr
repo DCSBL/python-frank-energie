@@ -5,3 +5,6 @@
 # name: test_me
   Me(id='vb10h3v01nfb0vh1f', email='contact@email.nl', countryCode='NL', advancedPaymentAmount=100.0, treesCount=None, hasInviteLink=True, hasCO2Compensation=False)
 # ---
+# name: test_month_summary
+  MonthSummary(actualCostsUntilLastMeterReadingDate=12.34, expectedCostsUntilLastMeterReadingDate=20.0, expectedCosts=50.0, lastMeterReadingDate='2023-01-01')
+# ---
