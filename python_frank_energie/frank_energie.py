@@ -9,7 +9,7 @@ from typing import Any
 from aiohttp.client import ClientError, ClientSession
 
 from .exceptions import AuthException, AuthRequiredException
-from .models import Authentication, Invoices, MarketPrices, MonthSummary, User
+from .models import Authentication, Invoices, MarketPrices, Me, MonthSummary
 
 
 class FrankEnergie:
@@ -158,33 +158,170 @@ class FrankEnergie:
 
         return Invoices.from_dict(await self._query(query))
 
-    async def user(self) -> User:
-        """Get user data."""
+    async def me(self, site_reference: str | None = None) -> Me:
+        """Get 'Me' data.
+
+        Full query:
+        query Me($siteReference: String) {
+            me {
+                ...UserFields
+            }
+        }
+        fragment UserFields on User {
+            id
+            email
+            countryCode
+            advancedPaymentAmount(siteReference: $siteReference)
+            treesCount
+            hasInviteLink
+            hasCO2Compensation
+            notification
+            createdAt
+            InviteLinkUser {
+                id
+                fromName
+                slug
+                treesAmountPerConnection
+                discountPerConnection
+            }
+            connections(siteReference: $siteReference) {
+                id
+                connectionId
+                EAN
+                segment
+                status
+                contractStatus
+                estimatedFeedIn
+                firstMeterReadingDate
+                lastMeterReadingDate
+                meterType
+                externalDetails {
+                    gridOperator
+                    address {
+                        street
+                        houseNumber
+                        houseNumberAddition
+                        zipCode
+                        city
+                    }
+                }
+            }
+            externalDetails {
+                reference
+                person {
+                    firstName
+                    lastName
+                }
+                contact {
+                    emailAddress
+                    phoneNumber
+                    mobileNumber
+                }
+                address {
+                    street
+                    houseNumber
+                    houseNumberAddition
+                    zipCode
+                    city
+                }
+                debtor {
+                    bankAccountNumber
+                    preferredAutomaticCollectionDay
+                }
+            }
+            PushNotificationPriceAlerts {
+                id
+                isEnabled
+                type
+                weekdays
+            }
+            UserSettings {
+                id
+                disabledHapticFeedback
+                jedlixUserId
+                jedlixPushNotifications
+                smartPushNotifications
+            }
+            activePaymentAuthorization {
+                id
+                mandateId
+                signedAt
+                bankAccountNumber
+            }
+            meterReadingExportPeriods(siteReference: $siteReference) {
+                EAN
+                cluster
+                segment
+                from
+                till
+                period
+                type
+            }
+            deliverySites {
+                reference
+                segments
+                address {
+                    street
+                    houseNumber
+                    houseNumberAddition
+                    zipCode
+                    city
+                }
+                addressHasMultipleSites
+                status
+                propositionType
+                deliveryStartDate
+                deliveryEndDate
+                firstMeterReadingDate
+                lastMeterReadingDate
+            }
+            smartCharging {
+                isActivated
+                provider
+                userCreatedAt
+                userId
+                isAvailableInCountry
+                needsSubscription
+                subscription {
+                    startDate
+                    endDate
+                    id
+                    proposition {
+                        product
+                        countryCode
+                    }
+                }
+            }
+            websiteUrl
+            customerSupportEmail
+            }
+
+        """
         if self._auth is None:
             raise AuthRequiredException
 
         query = {
             "query": """
-                query Me {
+                query Me($siteReference: String) {
                     me {
                         ...UserFields
                     }
                 }
                 fragment UserFields on User {
                     id
-                    connectionsStatus
-                    firstMeterReadingDate
-                    lastMeterReadingDate
-                    advancedPaymentAmount
+                    email
+                    countryCode
+                    advancedPaymentAmount(siteReference: $siteReference)
                     treesCount
+                    hasInviteLink
                     hasCO2Compensation
                 }
             """,
             "operationName": "Me",
-            "variables": {},
+            "variables": {"siteReference": site_reference},
         }
 
-        return User.from_dict(await self._query(query))
+        return Me.from_dict(await self._query(query))
 
     async def prices(
         self, start_date: date, end_date: date | None = None

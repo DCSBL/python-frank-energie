@@ -4,6 +4,7 @@ from datetime import datetime
 
 import aiohttp
 import pytest
+from syrupy.assertion import SnapshotAssertion
 
 from python_frank_energie import FrankEnergie
 from python_frank_energie.exceptions import AuthException, AuthRequiredException
@@ -264,19 +265,19 @@ async def test_invoices_without_authentication(aresponses):
 
 
 #
-# User
+# Me
 #
 
 
 @pytest.mark.asyncio
-async def test_user(aresponses):
+async def test_me(aresponses, snapshot: SnapshotAssertion):
     """Test request with authentication."""
     aresponses.add(
         SIMPLE_DATA_URL,
         "/",
         "POST",
         aresponses.Response(
-            text=load_fixtures("user.json"),
+            text=load_fixtures("me.json"),
             status=200,
             headers={"Content-Type": "application/json"},
         ),
@@ -284,19 +285,15 @@ async def test_user(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session, auth_token="a", refresh_token="b")  # noqa: S106
-        user = await api.user()
+        me = await api.me("1234AB 10")
         await api.close()
 
-    assert user is not None
-    assert user.connectionsStatus == "READY"
-    assert user.firstMeterReadingDate == "2022-11-20"
-    assert user.lastMeterReadingDate == "2022-12-05"
-    assert user.advancedPaymentAmount == 99.00
-    assert user.hasCO2Compensation is False
+    assert me is not None
+    assert me == snapshot
 
 
 @pytest.mark.asyncio
-async def test_user_without_authentication(aresponses):
+async def test_me_without_authentication(aresponses):
     """Test request without authentication.
 
     'user' request requires authentication.
@@ -304,7 +301,7 @@ async def test_user_without_authentication(aresponses):
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
         with pytest.raises(AuthRequiredException):
-            await api.user()
+            await api.me("1234AB 10")
         await api.close()
 
 
