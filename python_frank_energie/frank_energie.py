@@ -367,6 +367,18 @@ class FrankEnergie:
                     treesCount
                     hasInviteLink
                     hasCO2Compensation
+                    deliverySites {
+                        reference
+                        segments
+                        address {
+                            street
+                            houseNumber
+                            houseNumberAddition
+                            zipCode
+                            city
+                        }
+                        status
+                    }
                 }
             """,
             "operationName": "Me",

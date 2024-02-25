@@ -124,6 +124,61 @@ class Me:
     treesCount: int
     hasInviteLink: bool
     hasCO2Compensation: bool
+    deliverySites: list[DeliverySites]
+
+    @dataclass
+    class DeliverySites:
+        """Delivery sites data, including the address and delivery status.
+
+        {
+            "reference": "1082MK 10", // ADJUSTED FOR PRIVACY
+            "segments": [
+                "ELECTRICITY",
+                "GAS"
+            ],
+            "address": {
+                "street": "Gustav Mahlerlaan", // ADJUSTED FOR PRIVACY
+                "houseNumber": "1025", // ADJUSTED FOR PRIVACY
+                "houseNumberAddition": null,
+                "zipCode": "1082 MK", // ADJUSTED FOR PRIVACY
+                "city": "AMSTERDAM" // ADJUSTED FOR PRIVACY
+            },
+            "addressHasMultipleSites": false,
+            "status": "DELIVERY_ENDED",
+            "propositionType": null,
+            "deliveryStartDate": "2023-01-05", // ADJUSTED FOR PRIVACY
+            "deliveryEndDate": "2024-02-09", // ADJUSTED FOR PRIVACY
+            "firstMeterReadingDate": "2023-01-05", // ADJUSTED FOR PRIVACY
+            "lastMeterReadingDate": "2024-02-08" // ADJUSTED FOR PRIVACY
+        },
+        """
+
+        reference: str
+        segments: list[str]
+        address_street: str
+        address_houseNumber: str
+        address_houseNumberAddition: str | None
+        address_zipCode: str
+        address_city: str
+        status: str
+
+        @staticmethod
+        def from_dict(payload: dict[str, str]) -> Me.DeliverySites:
+            """Parse the response from the me query."""
+            _LOGGER.debug("DeliverySites %s", payload)
+
+            return Me.DeliverySites(
+                reference=payload.get("reference"),
+                segments=payload.get("segments"),
+                address_street=payload.get("address").get("street"),
+                address_houseNumber=payload.get("address").get("houseNumber"),
+                address_houseNumberAddition=payload.get("address").get(
+                    "houseNumberAddition"
+                ),
+                address_zipCode=payload.get("address").get("zipCode"),
+                address_city=payload.get("address").get("city"),
+                status=payload.get("status"),
+            )
 
     @staticmethod
     def from_dict(data: dict[str, str]) -> Me:
@@ -145,6 +200,10 @@ class Me:
             treesCount=payload.get("treesCount"),
             hasInviteLink=payload.get("hasInviteLink"),
             hasCO2Compensation=payload.get("hasCO2Compensation"),
+            deliverySites=[
+                Me.DeliverySites.from_dict(site)
+                for site in payload.get("deliverySites")
+            ],
         )
 
 
