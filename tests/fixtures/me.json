@@ -1,0 +1,103 @@
+{
+    "data": {
+        "me": {
+            "id": "vb10h3v01nfb0vh1f",
+            "email": "contact@email.nl",
+            "countryCode": "NL",
+            "advancedPaymentAmount": 100.00,
+            "treesCount": null,
+            "hasInviteLink": true,
+            "hasCO2Compensation": false,
+            "connections": [
+                {
+                    "id": "vb10h3v01nfb0vh1fdo1m",
+                    "connectionId": "d1v9jvd1jnj0-vd1j09jb-1vd-vfwdon",
+                    "EAN": "87000000000009",
+                    "segment": "ELECTRICITY",
+                    "status": "READY",
+                    "contractStatus": "SWITCHED",
+                    "estimatedFeedIn": 0,
+                    "firstMeterReadingDate": "2023-12-10",
+                    "lastMeterReadingDate": "2024-02-24",
+                    "meterType": "SLM",
+                    "externalDetails": {
+                        "gridOperator": "Stedin",
+                        "address": {
+                            "street": "Sesamstraat",
+                            "houseNumber": "123",
+                            "houseNumberAddition": null,
+                            "zipCode": "1234 AB",
+                            "city": "AMSTERDAM"
+                        }
+                    }
+                },
+                {
+                    "id": "vb10h3v01nfb0vh1fdo1m",
+                    "connectionId": "d1v9jvd1jnj0-vd1j09jb-1vd-vfwdon",
+                    "EAN": "87000000000008",
+                    "segment": "GAS",
+                    "status": "READY",
+                    "contractStatus": "SWITCHED",
+                    "estimatedFeedIn": null,
+                    "firstMeterReadingDate": "2023-12-10",
+                    "lastMeterReadingDate": "2024-02-24",
+                    "meterType": "SLM",
+                    "externalDetails": {
+                        "gridOperator": "Stedin",
+                        "address": {
+                            "street": "Sesamstraat",
+                            "houseNumber": "123",
+                            "houseNumberAddition": null,
+                            "zipCode": "1234 AB",
+                            "city": "AMSTERDAM"
+                        }
+                    }
+                }
+            ],
+            "deliverySites": [
+                {
+                    "reference": "1234AB 10",
+                    "segments": [
+                        "ELECTRICITY",
+                        "GAS"
+                    ],
+                    "address": {
+                        "street": "Oudestraat",
+                        "houseNumber": "1898",
+                        "houseNumberAddition": null,
+                        "zipCode": "5171 KW",
+                        "city": "Kaatsheuvel"
+                    },
+                    "addressHasMultipleSites": false,
+                    "status": "DELIVERY_ENDED",
+                    "propositionType": null,
+                    "deliveryStartDate": "2023-03-09",
+                    "deliveryEndDate": "2024-01-08",
+                    "firstMeterReadingDate": "2023-03-09",
+                    "lastMeterReadingDate": "2024-01-07"
+                },
+                {
+                    "reference": "1000BC 42",
+                    "segments": [
+                        "ELECTRICITY",
+                        "GAS"
+                    ],
+                    "address": {
+                        "street": "Sesamstraat",
+                        "houseNumber": "123",
+                        "houseNumberAddition": null,
+                        "zipCode": "1234 AB",
+                        "city": "AMSTERDAM"
+                    },
+                    "addressHasMultipleSites": false,
+                    "status": "IN_DELIVERY",
+                    "propositionType": "DYNAMIC",
+                    "deliveryStartDate": "2023-12-20",
+                    "deliveryEndDate": null,
+                    "firstMeterReadingDate": "2023-12-10",
+                    "lastMeterReadingDate": "2024-02-24"
+                }
+            ]
+        }
+    }
+}

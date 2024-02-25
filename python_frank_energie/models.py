@@ -114,18 +114,19 @@ class Invoices:
 
 
 @dataclass
-class User:
-    """User data, including the current status of the connection."""
+class Me:
+    """Me data, including the current status of the connection."""
 
     id: str
-    connectionsStatus: str
-    firstMeterReadingDate: str
-    lastMeterReadingDate: str
+    email: str
+    countryCode: str
     advancedPaymentAmount: float
+    treesCount: int
+    hasInviteLink: bool
     hasCO2Compensation: bool
 
     @staticmethod
-    def from_dict(data: dict[str, str]) -> User:
+    def from_dict(data: dict[str, str]) -> Me:
         """Parse the response from the me query."""
         _LOGGER.debug("User %s", data)
 
@@ -136,12 +137,13 @@ class User:
         if not payload:
             raise RequestException("Unexpected response")
 
-        return User(
+        return Me(
             id=payload.get("id"),
-            connectionsStatus=payload.get("connectionsStatus"),
-            firstMeterReadingDate=payload.get("firstMeterReadingDate"),
-            lastMeterReadingDate=payload.get("lastMeterReadingDate"),
+            email=payload.get("email"),
+            countryCode=payload.get("countryCode"),
             advancedPaymentAmount=payload.get("advancedPaymentAmount"),
+            treesCount=payload.get("treesCount"),
+            hasInviteLink=payload.get("hasInviteLink"),
             hasCO2Compensation=payload.get("hasCO2Compensation"),
         )
 
