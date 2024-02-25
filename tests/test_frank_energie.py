@@ -175,7 +175,7 @@ async def test_renew_token_invalid_response(aresponses):
 
 
 @pytest.mark.asyncio
-async def test_month_summary(aresponses):
+async def test_month_summary(aresponses, snapshot: SnapshotAssertion):
     """Test request with authentication."""
     aresponses.add(
         SIMPLE_DATA_URL,
@@ -190,14 +190,11 @@ async def test_month_summary(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session, auth_token="a", refresh_token="b")  # noqa: S106
-        summary = await api.month_summary()
+        summary = await api.month_summary("1234AB 10")
         await api.close()
 
     assert summary is not None
-    assert summary.actualCostsUntilLastMeterReadingDate == 12.34
-    assert summary.expectedCostsUntilLastMeterReadingDate == 20.00
-    assert summary.expectedCosts == 50.00
-    assert summary.lastMeterReadingDate == "2023-01-01"
+    assert summary == snapshot
 
 
 @pytest.mark.asyncio
@@ -209,7 +206,7 @@ async def test_month_summary_without_authentication(aresponses):
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
         with pytest.raises(AuthRequiredException):
-            await api.month_summary()
+            await api.month_summary("1234AB 10")
         await api.close()
 
 

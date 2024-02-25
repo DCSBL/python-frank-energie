@@ -91,17 +91,13 @@ def test_me_error_message():
 #
 
 
-def test_month_summary_with_expected_parameters():
+def test_month_summary_with_expected_parameters(snapshot: SnapshotAssertion):
     """Test MonthSummary.from_dict with expected parameters."""
     month_summary = MonthSummary.from_dict(
         json.loads(load_fixtures("month_summary.json"))
     )
     assert month_summary
-    assert month_summary.actualCostsUntilLastMeterReadingDate == 12.34
-    assert month_summary.expectedCostsUntilLastMeterReadingDate == 20.0
-    assert month_summary.expectedCosts == 50.0
-    assert month_summary.differenceUntilLastMeterReadingDate == -7.66
-    assert month_summary.lastMeterReadingDate == "2023-01-01"
+    assert month_summary == snapshot
 
 
 def test_month_summary_with_missing_parameters():
