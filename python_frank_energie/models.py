@@ -131,25 +131,25 @@ class Me:
         """Delivery sites data, including the address and delivery status.
 
         {
-            "reference": "1082MK 10", // ADJUSTED FOR PRIVACY
+            "reference": "1082MK 10",
             "segments": [
                 "ELECTRICITY",
                 "GAS"
             ],
             "address": {
-                "street": "Gustav Mahlerlaan", // ADJUSTED FOR PRIVACY
-                "houseNumber": "1025", // ADJUSTED FOR PRIVACY
+                "street": "Gustav Mahlerlaan",
+                "houseNumber": "1025",
                 "houseNumberAddition": null,
-                "zipCode": "1082 MK", // ADJUSTED FOR PRIVACY
-                "city": "AMSTERDAM" // ADJUSTED FOR PRIVACY
+                "zipCode": "1082 MK",
+                "city": "AMSTERDAM"
             },
             "addressHasMultipleSites": false,
             "status": "DELIVERY_ENDED",
             "propositionType": null,
-            "deliveryStartDate": "2023-01-05", // ADJUSTED FOR PRIVACY
-            "deliveryEndDate": "2024-02-09", // ADJUSTED FOR PRIVACY
-            "firstMeterReadingDate": "2023-01-05", // ADJUSTED FOR PRIVACY
-            "lastMeterReadingDate": "2024-02-08" // ADJUSTED FOR PRIVACY
+            "deliveryStartDate": "2023-01-05",
+            "deliveryEndDate": "2024-02-09",
+            "firstMeterReadingDate": "2023-01-05",
+            "lastMeterReadingDate": "2024-02-08"
         },
         """
 
