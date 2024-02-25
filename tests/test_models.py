@@ -5,14 +5,15 @@ from datetime import datetime
 
 import pytest
 from freezegun import freeze_time
+from syrupy.assertion import SnapshotAssertion
 
 from python_frank_energie.exceptions import AuthException, RequestException
 from python_frank_energie.models import (
     Authentication,
     Invoices,
     MarketPrices,
-    MonthSummary,
     Me,
+    MonthSummary,
 )
 
 from . import load_fixtures
@@ -57,15 +58,11 @@ def test_authentication_error_message():
 #
 
 
-def test_me_with_expected_parameters():
+def test_me_with_expected_parameters(snapshot: SnapshotAssertion):
     """Test Me.from_dict with expected parameters."""
     me = Me.from_dict(json.loads(load_fixtures("me.json")))
     assert me
-    assert me.connectionsStatus == "READY"
-    assert me.firstMeterReadingDate == "2022-11-20"
-    assert me.lastMeterReadingDate == "2022-12-05"
-    assert me.advancedPaymentAmount == 99.0
-    assert me.hasCO2Compensation is False
+    assert me == snapshot
 
 
 def test_me_with_missing_parameters():

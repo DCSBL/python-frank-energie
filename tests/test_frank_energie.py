@@ -4,6 +4,7 @@ from datetime import datetime
 
 import aiohttp
 import pytest
+from syrupy.assertion import SnapshotAssertion
 
 from python_frank_energie import FrankEnergie
 from python_frank_energie.exceptions import AuthException, AuthRequiredException
@@ -269,7 +270,7 @@ async def test_invoices_without_authentication(aresponses):
 
 
 @pytest.mark.asyncio
-async def test_me(aresponses):
+async def test_me(aresponses, snapshot: SnapshotAssertion):
     """Test request with authentication."""
     aresponses.add(
         SIMPLE_DATA_URL,
@@ -288,11 +289,7 @@ async def test_me(aresponses):
         await api.close()
 
     assert me is not None
-    assert me.connectionsStatus == "READY"
-    assert me.firstMeterReadingDate == "2022-11-20"
-    assert me.lastMeterReadingDate == "2022-12-05"
-    assert me.advancedPaymentAmount == 99.00
-    assert me.hasCO2Compensation is False
+    assert me == snapshot
 
 
 @pytest.mark.asyncio

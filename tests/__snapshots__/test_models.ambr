@@ -1,0 +1,4 @@
+# serializer version: 1
+# name: test_me_with_expected_parameters
+  Me(id='vb10h3v01nfb0vh1f', email='contact@email.nl', countryCode='NL', advancedPaymentAmount=100.0, treesCount=None, hasInviteLink=True, hasCO2Compensation=False)
+# ---

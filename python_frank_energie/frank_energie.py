@@ -9,7 +9,7 @@ from typing import Any
 from aiohttp.client import ClientError, ClientSession
 
 from .exceptions import AuthException, AuthRequiredException
-from .models import Authentication, Invoices, MarketPrices, MonthSummary, Me
+from .models import Authentication, Invoices, MarketPrices, Me, MonthSummary
 
 
 class FrankEnergie:
@@ -158,9 +158,9 @@ class FrankEnergie:
 
         return Invoices.from_dict(await self._query(query))
 
-    async def me(self, site_reference: str) -> Me:
+    async def me(self, site_reference: str | None = None) -> Me:
         """Get 'Me' data.
-        
+
         Full query:
         query Me($siteReference: String) {
             me {
@@ -295,12 +295,11 @@ class FrankEnergie:
             websiteUrl
             customerSupportEmail
             }
-        
+
         """
         if self._auth is None:
             raise AuthRequiredException
-        
-        
+
         query = {
             "query": """
                 query Me($siteReference: String) {
