@@ -345,7 +345,7 @@ async def test_user_prices(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session, auth_token="a", refresh_token="b")  # noqa: S106
-        prices = await api.user_prices(datetime.utcnow().date())
+        prices = await api.user_prices(datetime.utcnow().date(), "1234AB 10")
         await api.close()
 
     assert prices.electricity is not None
