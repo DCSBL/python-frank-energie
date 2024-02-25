@@ -418,15 +418,45 @@ class FrankEnergie:
 
         return MarketPrices.from_dict(await self._query(query_data))
 
-    async def user_prices(self, start_date: date) -> MarketPrices:
-        """Get customer market prices."""
+    async def user_prices(self, start_date: date, site_reference: str) -> MarketPrices:
+        """Get customer market prices.
+
+        Full query:
+        query MarketPrices($date: String!, $siteReference: String!) {
+            customerMarketPrices(date: $date, siteReference: $siteReference) {
+                id
+                electricityPrices {
+                    id
+                    from
+                    till
+                    date
+                    marketPrice
+                    marketPriceTax
+                    consumptionSourcingMarkupPrice
+                    energyTax
+                    perUnit
+                }
+                gasPrices {
+                    id
+                    from
+                    till
+                    date
+                    marketPrice
+                    marketPriceTax
+                    consumptionSourcingMarkupPrice
+                    energyTax
+                    perUnit
+                }
+            }
+        }
+        """
         if self._auth is None:
             raise AuthRequiredException
 
         query_data = {
             "query": """
-                query CustomerMarketPrices($date: String!) {
-                    customerMarketPrices(date: $date) {
+                query MarketPrices($date: String!, $siteReference: String!) {
+                    customerMarketPrices(date: $date, siteReference: $siteReference) {
                         electricityPrices {
                             from
                             till
@@ -446,8 +476,8 @@ class FrankEnergie:
                     }
                 }
             """,
-            "variables": {"date": str(start_date)},
-            "operationName": "CustomerMarketPrices",
+            "variables": {"date": str(start_date), "siteReference": site_reference},
+            "operationName": "MarketPrices",
         }
 
         return MarketPrices.from_userprices_dict(await self._query(query_data))
