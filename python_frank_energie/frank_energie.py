@@ -40,9 +40,11 @@ class FrankEnergie:
             resp = await self._session.post(
                 self.DATA_URL,
                 json=query,
-                headers={"Authorization": f"Bearer {self._auth.authToken}"}
-                if self._auth is not None
-                else None,
+                headers=(
+                    {"Authorization": f"Bearer {self._auth.authToken}"}
+                    if self._auth is not None
+                    else None
+                ),
             )
 
             response = await resp.json()
