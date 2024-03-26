@@ -1,4 +1,5 @@
 """Tests for python-frank-energie."""
+
 import os
 
 
