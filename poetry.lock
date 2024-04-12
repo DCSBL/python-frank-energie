@@ -1605,13 +1605,13 @@ six = ">=1.5"
 
 [[package]]
 name = "pyupgrade"
-version = "3.15.1"
+version = "3.15.2"
 description = "A tool to automatically upgrade syntax for newer versions."
 optional = false
 python-versions = ">=3.8.1"
 files = [
-    {file = "pyupgrade-3.15.1-py2.py3-none-any.whl", hash = "sha256:c5e005de2805edcd333d1deb04553200ec69da85e4bc9db37b16345ed9e27ed9"},
-    {file = "pyupgrade-3.15.1.tar.gz", hash = "sha256:7690857cae0f6253f39241dcd2e57118c333c438b78609fc3c17a5aa61227b7d"},
+    {file = "pyupgrade-3.15.2-py2.py3-none-any.whl", hash = "sha256:ce309e0ff8ecb73f56a45f12570be84bbbde9540d13697cacb261a7f595fb1f5"},
+    {file = "pyupgrade-3.15.2.tar.gz", hash = "sha256:c488d6896c546d25845712ef6402657123008d56c1063174e27aabe15bd6b4e5"},
 ]
 
 [package.dependencies]
@@ -2115,4 +2115,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "0286dde0ce549159f3f624b0f06832f0cc0ab123377a35cfc7703777c3842727"
+content-hash = "e3b94406a0a8cff288799f43951aa9bc231f7c134f4f774a32416199b5c0e778"
