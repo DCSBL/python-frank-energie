@@ -23,7 +23,7 @@ PyJWT = ">=2.8.0"
 syrupy = "^4.6.1"
 
 [tool.poetry.dev-dependencies]
-aresponses = "^2.1.6"
+aresponses = "^3.0.0"
 black = "^24.3"
 blacken-docs = "^1.15.0"
 flake8 = "^4.0.1"
