@@ -1,6 +1,6 @@
 """Test for Frank Energie."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 import aiohttp
 import pytest
@@ -316,7 +316,9 @@ async def test_prices(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session)
-        prices = await api.prices(datetime.utcnow().date(), datetime.utcnow().date())
+        prices = await api.prices(
+            datetime.now(timezone.utc), datetime.now(timezone.utc)
+        )
         await api.close()
 
     assert prices.electricity is not None
@@ -345,7 +347,7 @@ async def test_user_prices(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = FrankEnergie(session, auth_token="a", refresh_token="b")  # noqa: S106
-        prices = await api.user_prices(datetime.utcnow().date(), "1234AB 10")
+        prices = await api.user_prices(datetime.now(timezone.utc), "1234AB 10")
         await api.close()
 
     assert prices.electricity is not None
