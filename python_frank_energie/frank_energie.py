@@ -497,18 +497,18 @@ class FrankEnergie:
         Returns a list of all smart batteries.
 
         Full query:
-        query {
-          smartBatteries {
-            brand
-            capacity
-            createdAt
-            externalReference
-            id
-            maxChargePower
-            maxDischargePower
-            provider
-            updatedAt
-          }
+        query SmartBatteries {
+            smartBatteries {
+                brand
+                capacity
+                createdAt
+                externalReference
+                id
+                maxChargePower
+                maxDischargePower
+                provider
+                updatedAt
+            }
         }
         """
         if self._auth is None:
@@ -516,8 +516,8 @@ class FrankEnergie:
 
         query = {
             "query": """
-                    query {
-                      smartBatteries {
+                query SmartBatteries {
+                    smartBatteries {
                         brand
                         capacity
                         createdAt
@@ -527,8 +527,9 @@ class FrankEnergie:
                         maxDischargePower
                         provider
                         updatedAt
-                      }
-                """,
+                   }
+              }
+            """,
             "operationName": "SmartBatteries",
         }
 
