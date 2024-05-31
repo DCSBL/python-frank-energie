@@ -423,7 +423,7 @@ class MarketPrices:
 
 @dataclass
 class SmartBatteries:
-    """Collection of the users SmartBatteries"""
+    """Collection of the users SmartBatteries."""
 
     smart_batteries: list[SmartBattery]
 
@@ -448,6 +448,7 @@ class SmartBatteries:
 
     @dataclass
     class SmartBattery:
+        """SmartBattery model."""
 
         brand: str
         capacity: float
@@ -461,7 +462,7 @@ class SmartBatteries:
 
         @staticmethod
         def from_dict(payload: dict[str, str]) -> SmartBatteries.SmartBattery:
-            """Parse the response from the me query."""
+            """Parse the response from the SmartBatteries query."""
             _LOGGER.debug("DeliverySites %s", payload)
 
             return SmartBatteries.SmartBattery(
