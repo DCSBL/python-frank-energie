@@ -419,3 +419,60 @@ class MarketPrices:
             electricity=PriceData(customerMarketPrices.get("electricityPrices")),
             gas=PriceData(customerMarketPrices.get("gasPrices")),
         )
+
+
+@dataclass
+class SmartBatteries:
+    """Collection of the users SmartBatteries."""
+
+    smart_batteries: list[SmartBattery]
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> SmartBatteries:
+        """Parse the response from the smartBatteries query."""
+        _LOGGER.debug("SmartBatteries %s", data)
+
+        if errors := data.get("errors"):
+            raise RequestException(errors[0]["message"])
+
+        payload = data.get("data")
+        if not payload:
+            raise RequestException("Unexpected response")
+
+        return SmartBatteries(
+            smart_batteries=[
+                SmartBatteries.SmartBattery.from_dict(smart_battery)
+                for smart_battery in payload.get("smartBatteries")
+            ],
+        )
+
+    @dataclass
+    class SmartBattery:
+        """SmartBattery model."""
+
+        brand: str
+        capacity: float
+        external_reference: str
+        id: str
+        max_charge_power: float
+        max_discharge_power: float
+        provider: str
+        created_at: datetime
+        updated_at: datetime
+
+        @staticmethod
+        def from_dict(payload: dict[str, str]) -> SmartBatteries.SmartBattery:
+            """Parse the response from the SmartBatteries query."""
+            _LOGGER.debug("DeliverySites %s", payload)
+
+            return SmartBatteries.SmartBattery(
+                brand=payload.get("brand"),
+                capacity=payload.get("capacity"),
+                external_reference=payload.get("externalReference"),
+                id=payload.get("id"),
+                max_charge_power=payload.get("maxChargePower"),
+                max_discharge_power=payload.get("maxDischargePower"),
+                provider=payload.get("provider"),
+                created_at=payload.get("createdAt"),
+                updated_at=payload.get("updatedAt"),
+            )

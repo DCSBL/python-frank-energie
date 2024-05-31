@@ -9,7 +9,14 @@ from typing import Any
 from aiohttp.client import ClientError, ClientSession
 
 from .exceptions import AuthException, AuthRequiredException
-from .models import Authentication, Invoices, MarketPrices, Me, MonthSummary
+from .models import (
+    Authentication,
+    Invoices,
+    MarketPrices,
+    Me,
+    MonthSummary,
+    SmartBatteries,
+)
 
 
 class FrankEnergie:
@@ -483,6 +490,49 @@ class FrankEnergie:
         }
 
         return MarketPrices.from_userprices_dict(await self._query(query_data))
+
+    async def smart_batteries(self) -> SmartBatteries:
+        """Get the users smart batteries.
+
+        Returns a list of all smart batteries.
+
+        Full query:
+        query {
+          smartBatteries {
+            brand
+            capacity
+            createdAt
+            externalReference
+            id
+            maxChargePower
+            maxDischargePower
+            provider
+            updatedAt
+          }
+        }
+        """
+        if self._auth is None:
+            raise AuthRequiredException
+
+        query = {
+            "query": """
+                    query {
+                      smartBatteries {
+                        brand
+                        capacity
+                        createdAt
+                        externalReference
+                        id
+                        maxChargePower
+                        maxDischargePower
+                        provider
+                        updatedAt
+                      }
+                """,
+            "operationName": "SmartBatteries",
+        }
+
+        return SmartBatteries.from_dict(await self._query(query))
 
     @property
     def is_authenticated(self) -> bool:

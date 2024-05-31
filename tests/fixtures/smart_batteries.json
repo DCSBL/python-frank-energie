@@ -1,0 +1,17 @@
+{
+  "data": {
+    "smartBatteries": [
+      {
+        "brand": "SESSY",
+        "capacity": 5.2,
+        "createdAt": "2024-04-30T13:33:42.776Z",
+        "externalReference": "SESSYREF",
+        "id": "unique_identifier",
+        "maxChargePower": 2.2,
+        "maxDischargePower": 1.7,
+        "provider": "SESSY",
+        "updatedAt": "2024-05-29T08:55:58.270Z"
+      }
+    ]
+  }
+}
