@@ -1,4 +1,5 @@
 """Tests for Frank Energie Smart batteries implementation."""
+
 import aiohttp
 import pytest
 from syrupy.assertion import SnapshotAssertion
