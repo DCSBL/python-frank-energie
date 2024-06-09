@@ -2,3 +2,6 @@
 # name: test_smart_batteries
   SmartBatteries(smart_batteries=[SmartBatteries.SmartBattery(brand='SESSY', capacity=5.2, external_reference='SESSYREF', id='unique_identifier', max_charge_power=2.2, max_discharge_power=1.7, provider='SESSY', created_at='2024-04-30T13:33:42.776Z', updated_at='2024-05-29T08:55:58.270Z')])
 # ---
+# name: test_smart_battery_sessions
+  SmartBatterySessions(deviceId='unique_identifier', periodEndDate='2024-05-29', periodStartDate='2024-05-01', periodTradingResult=26.17683031883334, totalTradingResult=26.10297351000001, sessions=[SmartBatterySessions.Session(date='2024-05-01', tradingResult=1.608739184750002, cumulativeTradingResult=1.608739184750002), SmartBatterySessions.Session(date='2024-05-02', tradingResult=0.3197138107499999, cumulativeTradingResult=1.9284529955000018)])
+# ---

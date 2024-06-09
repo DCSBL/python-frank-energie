@@ -1,0 +1,23 @@
+{
+  "data": {
+    "smartBatterySessions": {
+      "deviceId": "unique_identifier",
+      "periodEndDate": "2024-05-29",
+      "periodStartDate": "2024-05-01",
+      "periodTradingResult": 26.17683031883334,
+      "sessions": [
+        {
+          "cumulativeTradingResult": 1.608739184750002,
+          "date": "2024-05-01",
+          "tradingResult": 1.608739184750002
+        },
+        {
+          "cumulativeTradingResult": 1.9284529955000018,
+          "date": "2024-05-02",
+          "tradingResult": 0.3197138107499999
+        }
+      ],
+      "totalTradingResult": 26.10297351000001
+    }
+  }
+}

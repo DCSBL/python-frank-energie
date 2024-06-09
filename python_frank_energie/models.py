@@ -476,3 +476,59 @@ class SmartBatteries:
                 created_at=payload.get("createdAt"),
                 updated_at=payload.get("updatedAt"),
             )
+
+
+@dataclass
+class SmartBatterySessions:
+    """Collection of battery sessions, for a given battery."""
+
+    deviceId: str
+    periodEndDate: str
+    periodStartDate: str
+    periodTradingResult: float
+    totalTradingResult: float
+    sessions: list[Session]
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> SmartBatterySessions:
+        """Parse the response from the SmartBatterySessions query."""
+        _LOGGER.debug("SmartBatterySessions %s", data)
+
+        if errors := data.get("errors"):
+            raise RequestException(errors[0]["message"])
+
+        payload = data.get("data")
+        if not payload:
+            raise RequestException("Unexpected response")
+
+        smart_battery_session_data = payload.get("smartBatterySessions")
+        return SmartBatterySessions(
+            deviceId=smart_battery_session_data.get("deviceId"),
+            periodEndDate=smart_battery_session_data.get("periodEndDate"),
+            periodStartDate=smart_battery_session_data.get("periodStartDate"),
+            periodTradingResult=smart_battery_session_data.get("periodTradingResult"),
+            totalTradingResult=smart_battery_session_data.get("totalTradingResult"),
+            sessions=[
+                SmartBatterySessions.Session.from_dict(session)
+                for session in smart_battery_session_data.get("sessions")
+            ],
+        )
+
+    @dataclass
+    class Session:
+        """A battery session."""
+
+        date: datetime
+        tradingResult: float
+        cumulativeTradingResult: float
+
+        @staticmethod
+        def from_dict(payload: dict[str, str]) -> SmartBatterySessions.Session:
+            """Parse the sessions payload from the SmartBatterySessions query result."""
+            _LOGGER.debug("DeliverySites %s", payload)
+
+            return SmartBatterySessions.Session(
+                date=payload.get("date"),
+                tradingResult=payload.get("tradingResult"),
+                cumulativeTradingResult=payload.get("cumulativeTradingResult"),
+            )
