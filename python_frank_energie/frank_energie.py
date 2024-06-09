@@ -537,7 +537,7 @@ class FrankEnergie:
         return SmartBatteries.from_dict(await self._query(query))
 
     async def smart_battery_sessions(
-        self, device_id, start_date, end_date
+        self, device_id: str, start_date: date, end_date: date
     ) -> SmartBatterySessions:
 
         if self._auth is None:
