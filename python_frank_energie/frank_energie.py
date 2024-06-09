@@ -539,6 +539,30 @@ class FrankEnergie:
     async def smart_battery_sessions(
         self, device_id: str, start_date: date, end_date: date
     ) -> SmartBatterySessions:
+        """List smart battery sessions for a device.
+
+        Returns a list of all smart battery sessions for a device.
+
+        Full query:
+        query SmartBatterySessions($startDate: String!, $endDate: String!, $deviceId: String!) {
+            smartBatterySessions(
+                startDate: $startDate
+                endDate: $endDate
+                deviceId: $deviceId
+          ) {
+            deviceId
+            periodEndDate
+            periodStartDate
+            periodTradingResult
+            sessions {
+              cumulativeTradingResult
+              date
+              tradingResult
+            }
+            totalTradingResult
+          }
+        }
+        """
 
         if self._auth is None:
             raise AuthRequiredException
