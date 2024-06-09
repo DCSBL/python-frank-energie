@@ -563,7 +563,6 @@ class FrankEnergie:
           }
         }
         """
-
         if self._auth is None:
             raise AuthRequiredException
 
