@@ -49,6 +49,8 @@ jobs:
             name: Enforcing style guide with flake8
           - id: isort
             name: Check imports are sorted
+          - id: mypy
+            name: Type check with mypy
           - id: poetry
             name: Check pyproject file
           - id: pyupgrade
