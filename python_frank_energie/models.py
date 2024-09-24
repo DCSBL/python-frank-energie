@@ -453,7 +453,7 @@ class Me:
         )
 
 def get_segments(data: dict[str, Any]) -> Optional[list[str]]:
-    delivery_site_data = data.get(DATA_USER)
+    delivery_site_data = data.get("user")
     if delivery_site_data:
         delivery_site = DeliverySite(**delivery_site_data)
         return delivery_site.segments
