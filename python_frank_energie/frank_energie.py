@@ -32,6 +32,12 @@ class FrankEnergieQuery:
             "variables": self.variables,
         }
 
+def sanitize_query(query: FrankEnergieQuery) -> dict[str, Any]:
+    sanitized_query = query.to_dict()
+    if "password" in sanitized_query["variables"]:
+        sanitized_query["variables"]["password"] = "****"
+    return sanitized_query
+
 class FrankEnergie:
     """FrankEnergie API."""
 
@@ -74,8 +80,8 @@ class FrankEnergie:
                 "Authorization": f"Bearer {self._auth.authToken}"
             } if self._auth is not None else None
             print(f"Request headers: {headers}")
-            # print(f"Request payload: {query}")
-            print(f"Request payload: {query.to_dict()}")
+            sanitized_query = sanitize_query(query)
+            print(f"Request payload: {sanitized_query}")
 
             async with self._session.post(
                 self.DATA_URL,
