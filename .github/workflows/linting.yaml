@@ -76,7 +76,7 @@ jobs:
         run: |
           echo "dir=$(pip cache dir)" >> $GITHUB_ENV
       - name: Restore cached Python PIP packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.dir }}
           key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('.github/workflows/requirements.txt') }}
@@ -90,7 +90,7 @@ jobs:
           poetry config virtualenvs.in-project true
       - name: Restore cached Python virtual environment
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv
           key: >-
