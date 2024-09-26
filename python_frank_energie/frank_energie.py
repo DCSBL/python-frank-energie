@@ -79,9 +79,9 @@ class FrankEnergie:
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {self._auth.authToken}"
             } if self._auth is not None else None
-            print(f"Request headers: {headers}")
             sanitized_query = sanitize_query(query)
-            print(f"Request payload: {sanitized_query}")
+            # print(f"Request headers: {headers}")
+            # print(f"Request payload: {sanitized_query}")
 
             async with self._session.post(
                 self.DATA_URL,
@@ -96,7 +96,7 @@ class FrankEnergie:
 
             # print(f"Response status code: {resp.status}")
             # print(f"Response headers: {resp.headers}")
-            print(f"Response body: {response}")
+            # print(f"Response body: {response}")
 
             if resp.status == 200:
                 return response
