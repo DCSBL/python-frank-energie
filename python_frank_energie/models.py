@@ -869,7 +869,7 @@ class User:
             raise RequestException("No delivery sites found in the payload")
 
         first_site = delivery_sites_data[0]
-        # todo select only site with the choosen deliverySite reference
+        # todo select only site with the chosen deliverySite reference
         # selected_delivery_sites = [site for site in delivery_sites_data if site.reference == "IN_DELIVERY"]
 
         # delivery_sites = [DeliverySite(Address(**site['address'])) for site in payload.get("deliverySites")]
