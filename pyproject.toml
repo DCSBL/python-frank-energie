@@ -27,7 +27,7 @@ python-dateutil = ">=2.8.0"
 
 [tool.poetry.dev-dependencies]
 aresponses = "^2.1.6"
-black = "^22.12"
+black = "^24.3"
 blacken-docs = "^1.15.0"
 flake8 = "^4.0.1"
 flake8-docstrings = "^1.5.0"
