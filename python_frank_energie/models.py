@@ -7,8 +7,8 @@ from collections import defaultdict, namedtuple
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from statistics import mean
-from pydantic import BaseModel, Field, EmailStr
 from typing import Any, Optional, Set, Union
+from pydantic import BaseModel, Field, EmailStr
 
 import jwt
 import pytz
