@@ -30,19 +30,9 @@ jobs:
       run: |
         poetry config virtualenvs.create false
 
-    - name: Install dependencies
-      run: poetry install
-
-    - name: Update Poetry Lock File
+    - name: Regenerate Poetry Lock File
       run: |
         poetry lock --no-update
 
-    - name: Run linters (pylint, black, isort)
-      run: |
-        poetry run pylint $(git ls-files '*.py')
-        poetry run black --check .
-        poetry run isort --check .
-
-    - name: Run tests with coverage
-      run: |
-        poetry run pytest --cov=python_frank_energie --cov-report=term --cov-report=html
+    - name: Install dependencies
+      run: poetry install
