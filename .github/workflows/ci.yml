@@ -33,6 +33,10 @@ jobs:
     - name: Install dependencies
       run: poetry install
 
+    - name: Update Poetry Lock File
+      run: |
+        poetry lock --no-update
+
     - name: Run linters (pylint, black, isort)
       run: |
         poetry run pylint $(git ls-files '*.py')
