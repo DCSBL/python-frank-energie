@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        python-version: ["3.12"]
         include:
           - id: bandit
             name: Check with bandit
