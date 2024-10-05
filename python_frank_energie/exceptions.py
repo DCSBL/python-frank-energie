@@ -12,7 +12,7 @@ class AuthException(FrankEnergieException):
 class RequestException(FrankEnergieException):
     """Request failed."""
 
-class NoSuitableSitesFoundError(Exception):
+class NoSuitableSitesFoundError(FrankEnergieError):
     """Request failed."""
 
 class FrankEnergieError(Exception):
@@ -24,10 +24,7 @@ class LoginError(FrankEnergieError):
 class NetworkError(FrankEnergieError):
     """Raised for network-related errors in FrankEnergie."""
 
-class RequestException(Exception):
-    """Custom exception for request errors."""
-
-class SmartTradingNotEnabledException(Exception):
+class SmartTradingNotEnabledException(FrankEnergieError):
     """Exception raised when smart trading is not enabled for the user."""
 
 class ConnectionException(FrankEnergieError):
