@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
     - name: Check out the code
@@ -24,14 +24,18 @@ jobs:
 
     - name: Install Poetry
       run: |
-        curl -sSL https://install.python-poetry.org | python3 -
+        curl -sSL https://install.python-poetry.org | python3 - --version 1.5.1
 
     - name: Configure Poetry
       run: |
-        poetry config virtualenvs.create false  # Use the system Python environment
+        poetry config virtualenvs.create true
 
     - name: Install dependencies
       run: poetry install --no-interaction --no-ansi
+
+    - name: Update Dependencies
+      run: |
+        poetry update
 
     - name: Run Tests
       run: |
