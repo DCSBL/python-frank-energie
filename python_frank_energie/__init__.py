@@ -3,7 +3,6 @@
 from .frank_energie import FrankEnergie
 from .models import Price, PriceData
 from .authentication import Authentication
-from .frank_energie import FrankEnergie
 from .exceptions import AuthException, ConnectionException
 
 __all__ = [
