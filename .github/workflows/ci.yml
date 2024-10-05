@@ -28,11 +28,11 @@ jobs:
 
     - name: Configure Poetry
       run: |
-        poetry config virtualenvs.create false
-
-    - name: Regenerate Poetry Lock File
-      run: |
-        poetry lock --no-update
+        poetry config virtualenvs.create false  # Use the system Python environment
 
     - name: Install dependencies
-      run: poetry install
+      run: poetry install --no-interaction --no-ansi
+
+    - name: Run Tests
+      run: |
+        poetry run pytest
