@@ -48,7 +48,7 @@ freezegun = "^1.5.1"
 darglint = "^1.8.1"
 safety = "^3.2.7"
 codespell = "^2.3.0"
-bandit = "^1.7.9"
+bandit = "^1.8.2"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/dcsbl/python-frank-energie/issues"
