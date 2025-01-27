@@ -484,7 +484,12 @@ class SmartBatterySessions:
 
     deviceId: str
     periodEndDate: str
+    periodEpexResult: float
+    periodFrankSlim: float
+    periodImbalanceResult: float
     periodStartDate: str
+    periodTotalResult: float
+    periodTradeIndex: int
     periodTradingResult: float
     totalTradingResult: float
     sessions: list[Session]
@@ -505,7 +510,14 @@ class SmartBatterySessions:
         return SmartBatterySessions(
             deviceId=smart_battery_session_data.get("deviceId"),
             periodEndDate=smart_battery_session_data.get("periodEndDate"),
+            periodEpexResult=smart_battery_session_data.get("periodEpexResult"),
+            periodFrankSlim=smart_battery_session_data.get("periodFrankSlim"),
+            periodImbalanceResult=smart_battery_session_data.get(
+                "periodImbalanceResult"
+            ),
             periodStartDate=smart_battery_session_data.get("periodStartDate"),
+            periodTotalResult=smart_battery_session_data.get("periodTotalResult"),
+            periodTradeIndex=smart_battery_session_data.get("periodTradeIndex"),
             periodTradingResult=smart_battery_session_data.get("periodTradingResult"),
             totalTradingResult=smart_battery_session_data.get("totalTradingResult"),
             sessions=[

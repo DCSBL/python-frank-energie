@@ -4,6 +4,11 @@
       "deviceId": "unique_identifier",
       "periodEndDate": "2024-05-29",
       "periodStartDate": "2024-05-01",
+      "periodEpexResult": -0.21519632966271895,
+      "periodFrankSlim": 4.2922058666628,
+      "periodImbalanceResult": 13.421063394322234,
+      "periodTotalResult": 17.498072931322316,
+      "periodTradeIndex": 5,
       "periodTradingResult": 26.17683031883334,
       "sessions": [
         {

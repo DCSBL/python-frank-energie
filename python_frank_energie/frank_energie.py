@@ -552,7 +552,12 @@ class FrankEnergie:
           ) {
             deviceId
             periodEndDate
+            periodEpexResult
+            periodFrankSlim
+            periodImbalanceResult
             periodStartDate
+            periodTotalResult
+            periodTradeIndex
             periodTradingResult
             sessions {
               cumulativeTradingResult
@@ -576,7 +581,12 @@ class FrankEnergie:
                       ) {
                         deviceId
                         periodEndDate
+                        periodEpexResult
+                        periodFrankSlim
+                        periodImbalanceResult
                         periodStartDate
+                        periodTotalResult
+                        periodTradeIndex
                         periodTradingResult
                         sessions {
                           cumulativeTradingResult
