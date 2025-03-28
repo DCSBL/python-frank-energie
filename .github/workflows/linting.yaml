@@ -1,7 +1,5 @@
----
 name: Linting
 
-# yamllint disable-line rule:truthy
 on: [pull_request]
 
 jobs:
@@ -58,30 +56,34 @@ jobs:
           - id: trailing-whitespace
             name: Trim Trailing Whitespace
           - id: vulture
+            name: Find unused code
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@v4
+
       - name: Set up Python 3.10
         id: python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
       - name: Get pip cache dir
-        id: pip-cache
-        run: |
-          echo "::set-output name=dir::$(pip cache dir)"
+        run: echo "PIP_CACHE_DIR=$(pip cache dir)" >> $GITHUB_ENV
+
       - name: Restore cached Python PIP packages
         uses: actions/cache@v4
         with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('.github/workflows/requirements.txt') }}
+          path: ${{ env.PIP_CACHE_DIR }}
+          key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
           restore-keys: |
             pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+
       - name: 🏗 Install workflow dependencies
         run: |
-          pip install -r .github/workflows/requirements.txt
+          pip install poetry
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
+
       - name: Restore cached Python virtual environment
         id: cached-poetry-dependencies
         uses: actions/cache@v4
@@ -90,7 +92,46 @@ jobs:
           key: >-
             venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
             venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+
       - name: Install Python dependencies
         run: poetry install --no-interaction
+
       - name: Run pre-commit for ${{ matrix.id }}
         run: poetry run pre-commit run ${{ matrix.id }} --all-files
+
+      - name: Regenerate poetry.lock if needed
+        run: |
+          if git diff --quiet pyproject.toml; then
+            echo "No changes in pyproject.toml, skipping poetry.lock regeneration."
+          else
+            echo "pyproject.toml has changed, regenerating poetry.lock..."
+            poetry lock
+            if git diff --quiet poetry.lock; then
+              echo "No changes to poetry.lock."
+            else
+              echo "::warning:: poetry.lock needs updating!"
+            fi
+          fi
+
+      - name: Commit updated poetry.lock
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@github.com"
+          
+          if git diff --quiet poetry.lock; then
+            echo "No changes in poetry.lock, skipping commit."
+            exit 0
+          fi
+      
+          git add poetry.lock
+          git commit -m "CI: Regenerate poetry.lock"
+          
+          git push origin HEAD:${GITHUB_REF##*/} || {
+            echo "::error:: Failed to push updated poetry.lock. You may need to push manually."
+            exit 1
+          }
+
+
