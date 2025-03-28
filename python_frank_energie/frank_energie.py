@@ -328,10 +328,9 @@ class FrankEnergie:
             response = await self._query(query)
             return MonthSummary.from_dict(response)
         except Exception as e:
-except Exception as e:
-    raise FrankEnergieException(
-        f"Failed to fetch month summary: {e}"
-    ) from e
+            raise FrankEnergieException(
+              f"Failed to fetch month summary: {e}"
+              ) from e
 
     async def UserEnergyConsumption(self) -> EnergyConsumption:
         if self._auth is None:
