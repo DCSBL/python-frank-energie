@@ -13,24 +13,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout Repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: pip install poetry
+      # Step 3: Cache Poetry Dependencies
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-cache-
 
+      # Step 4: Install Poetry
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      # Step 5: Install Dependencies
       - name: Install dependencies
         run: poetry install
 
-      - name: Run pre-commit with pyupgrade
-        run: poetry run pre-commit run pyupgrade --all-files || true
+      # Step 6: Run Pre-Commit Hook with Pyupgrade
+      - name: Run Pyupgrade with pre-commit
+        run: |
+          poetry run pre-commit run pyupgrade --all-files || true
 
-      - name: Commit and push changes (if any)
+      # Step 7: Commit and Push Changes if Necessary
+      - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
