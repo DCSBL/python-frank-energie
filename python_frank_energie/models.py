@@ -727,15 +727,23 @@ class DeliverySite(BaseModel):
             address=address,
             propositionType=payload.get("propositionType"),
             status=payload.get("status"),
-            deliveryStartDate=datetime.fromisoformat(payload.get(
-                "deliveryStartDate")) if payload.get("deliveryStartDate") else None,
-            deliveryEndDate=datetime.fromisoformat(
-                payload["deliveryEndDate"]) if payload.get("deliveryEndDate") else None,
-            firstMeterReadingDate=datetime.fromisoformat(
-                payload.get("firstMeterReadingDate")).astimezone(pytz.timezone('Europe/Amsterdam')),
-            lastMeterReadingDate=datetime.fromisoformat(
-                payload.get("lastMeterReadingDate")).astimezone(pytz.timezone('Europe/Amsterdam')),
-        )
+            deliveryStartDate=(
+                datetime.strptime(payload.get("deliveryStartDate"), "%Y-%m-%d").date()
+                if payload.get("deliveryStartDate") else None
+            ),
+            deliveryEndDate=(
+                datetime.strptime(payload.get("deliveryEndDate"), "%Y-%m-%d").date()
+                if payload.get("deliveryEndDate") else None
+            ),
+            firstMeterReadingDate=(
+                datetime.strptime(payload.get("firstMeterReadingDate"), "%Y-%m-%d").date()
+                if payload.get("firstMeterReadingDate") else None
+            ),
+            lastMeterReadingDate=(
+                datetime.strptime(payload.get("lastMeterReadingDate"), "%Y-%m-%d").date()
+                if payload.get("lastMeterReadingDate") else None
+            )
+        ) if payload else None
 
     @property
     def format_delivery_site_as_dict(self):
