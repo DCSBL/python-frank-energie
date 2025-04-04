@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Filename: test_query.py
+# Project: python-frank-energie
+# Created Date: 2025-4-4
+
 from __future__ import annotations
 
 import asyncio
@@ -7,58 +13,90 @@ from datetime import datetime, timedelta
 
 from python_frank_energie import FrankEnergie
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# Filename: test_query.py
-
-
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 _LOGGER = logging.getLogger(__name__)
 
 
 async def execute_query():
+    """
+    Execute a query to retrieve market prices for electricity and gas from the Frank Energie API.
+
+    This function initializes the Frank Energie client, retrieves market prices for the next day,
+    and prints the results to the console. It handles exceptions and provides appropriate exit codes.
+
+    Args:
+        None
+
+    Returns:
+        int: Exit code indicating the result of the query:
+            0 - Success
+            1 - No market prices available
+            2 - Exception occurred during execution
+            3 - Value error occurred
+            4 - Unexpected error occurred
+    """
     current_date = datetime.now().date()
     tomorrow = current_date + timedelta(days=1)
-    start_date = current_date
-    end_date = tomorrow
 
     try:
-        frank_energie = FrankEnergie()
-        print("Testing public prices query")
-        market_prices = await frank_energie.prices(start_date, end_date)
+        async with FrankEnergie() as frank_energie:
+            _LOGGER.info("Fetching market prices for date range %s to %s", current_date, tomorrow)
+            market_prices = await frank_energie.prices(current_date, tomorrow)
 
-        if not market_prices:
-            print("No market prices available.", file=sys.stderr)
-            return 1  # Exit code 1 indicates failure
+            if not market_prices:
+                _LOGGER.warning("No market prices available for the given date range.")
+                return 1  # No data found
 
-        # Access electricity and gas prices
-        electricity_prices = market_prices.electricity
-        gas_prices = market_prices.gas
+            electricity_prices = market_prices.electricity
+            gas_prices = market_prices.gas
 
-        # Handle cases where prices might be empty or missing
-        if not electricity_prices and not gas_prices:
-            print("No prices available", file=sys.stderr)
-            return 1
+            if not electricity_prices and not gas_prices:
+                _LOGGER.warning("No prices available.")
+                return 1
 
-        # Print electricity prices
-        print("Electricity Prices:")
-        for price in electricity_prices.all:
-            print(f"From: {price.date_from}, Till: {price.date_till}, Market Price: {price.market_price}, Total: {price.total}")
+            if not electricity_prices:
+                _LOGGER.warning("No electricity prices available.")
+            if not gas_prices:
+                _LOGGER.warning("No gas prices available.")
 
-        # Print gas prices
-        print("Gas Prices:")
-        for price in gas_prices.all:
-            print(f"From: {price.date_from}, Till: {price.date_till}, Market Price: {price.market_price}, Total: {price.total}")
+            # Log electricity prices
+            _LOGGER.info("Electricity Prices:")
+            if hasattr(electricity_prices, 'all') and electricity_prices.all:
+                for price in electricity_prices.all:
+                    _LOGGER.info(
+                        "From: %s, Till: %s, Market Price: %.4f, Total: %.4f",
+                        price.date_from, price.date_till, price.market_price, price.total
+                    )
+            else:
+                _LOGGER.warning("No electricity price details available.")
 
-        return 0  # Exit code 0 means success
+            # Log gas prices
+            _LOGGER.info("Gas Prices:")
+            if hasattr(gas_prices, 'all') and gas_prices.all:
+                for price in gas_prices.all:
+                    _LOGGER.info(
+                        "From: %s, Till: %s, Market Price: %.4f, Total: %.4f",
+                        price.date_from, price.date_till, price.market_price, price.total
+                    )
+            else:
+                _LOGGER.warning("No gas price details available.")
 
+            return 0  # Success
+
+    except ConnectionError as e:
+        _LOGGER.error("Connection error: %s", e)
+        return 2
+    except ValueError as e:
+        _LOGGER.error("Value error: %s", e)
+        return 3
+    except KeyboardInterrupt:
+        _LOGGER.warning("Process interrupted by user.")
+        return 4
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 2  # Custom error code for exceptions
-    finally:
-        await frank_energie.close()  # Close the client session when done
+        _LOGGER.error("Unexpected error: %s", e)
+        return 5
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    exit_code = loop.run_until_complete(execute_query())
-    sys.exit(exit_code)
+    sys.exit(asyncio.run(execute_query()))
