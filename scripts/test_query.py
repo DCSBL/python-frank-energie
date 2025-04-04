@@ -16,6 +16,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def execute_query():
+    """
+    Executes a market prices query for electricity and gas.
+    
+    Calculates the current date and the following day to define a one-day query window, then uses a FrankEnergie client to asynchronously fetch market prices. The function prints electricity and gas price details if available. It returns 0 on success, 1 when no market prices or both price lists are missing, and 2 if an exception occurs. In all cases, it ensures the client session is closed.
+    """
     current_date = datetime.now().date()
     tomorrow = current_date + timedelta(days=1)
     start_date = current_date
