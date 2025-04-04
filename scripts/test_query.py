@@ -4,6 +4,14 @@
 # Project: python-frank-energie
 # Created Date: 2025-4-4
 
+"""
+Test script to query the Frank Energie API for electricity and gas market prices.
+
+This module provides a simple way to verify that the API connection is working
+and to retrieve current market prices for debugging or testing purposes.
+"""
+
+from __future__ import annotations
 from __future__ import annotations
 
 import asyncio
