@@ -97,6 +97,14 @@ jobs:
       - name: Install Python dependencies
         run: poetry install --no-interaction
 
+      - name: Run black
+        run: |
+          poetry run black .
+          if ! git diff --quiet; then
+            echo "::error:: 'black' made changes to the code. Please commit the changes and push again."
+            exit 1
+          fi
+
       - name: Run pre-commit for ${{ matrix.id }}
         run: poetry run pre-commit run ${{ matrix.id }} --all-files
 
@@ -134,5 +142,3 @@ jobs:
             echo "::error:: Failed to push updated poetry.lock. You may need to push manually."
             exit 1
           }
-
-
