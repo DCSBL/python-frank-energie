@@ -40,9 +40,10 @@ async def execute_query():
         int: Exit code indicating the result of the query:
             0 - Success
             1 - No market prices available
-            2 - Exception occurred during execution
+            2 - Connection error occurred
             3 - Value error occurred
-            4 - Unexpected error occurred
+            4 - Process interrupted by user
+            5 - Unexpected error occurred
     """
     current_date = datetime.now().date()
     tomorrow = current_date + timedelta(days=1)
